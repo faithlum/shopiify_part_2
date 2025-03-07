@@ -1,0 +1,4 @@
+name = "avatar-generation"
+type = "theme"
+extension_points = ["product_page"]
+
