@@ -1,0 +1,451 @@
+<div class="try-on-viewer-container">
+  <div class="viewer-tabs">
+    <button class="tab active">Try-on</button>
+    <button class="tab">Body Measurements</button>
+  </div>
+  
+  <div class="viewer-layout">
+    <!-- Left Panel -->
+    <div class="measurement-panel">
+      <!-- Size Recommendation with yellow highlight -->
+      <div class="size-recommendation">
+        <div class="recommendation-label">Recommended size</div>
+        <div class="size-selector">
+          <button class="nav-button prev">‹</button>
+          <div class="size-options">
+            <span class="size-option">XS</span>
+            <span class="size-option selected">S</span>
+            <span class="size-option">M</span>
+          </div>
+          <button class="nav-button next">›</button>
+        </div>
+      </div>
+
+      <!-- Fit Preference with slider -->
+      <div class="fit-preference">
+        <div class="preference-header">
+          <span>Fit preference</span>
+          <button class="info-icon">ⓘ</button>
+        </div>
+        <div class="slider-container">
+          <div class="slider-labels">
+            <span>Tight</span>
+            <span>Fitted</span>
+            <span>Loose</span>
+          </div>
+          <input type="range" min="0" max="100" value="50" class="fit-slider">
+          <div class="slider-track"></div>
+        </div>
+      </div>
+
+      <!-- Dimensions -->
+      <div class="dimensions">
+        <div class="dimensions-header">
+          <span>Dimensions</span>
+          <button class="info-icon">ⓘ</button>
+        </div>
+        <div class="unit-toggle">
+          <label class="switch">
+            <input type="checkbox" id="unitToggle">
+            <span class="toggle-track"></span>
+          </label>
+          <span class="unit-label active">cm</span>
+          <span class="unit-label">inch</span>
+        </div>
+        <div class="measurements-list">
+          <div class="measurement-item">
+            <span class="measure-label">Bust</span>
+            <div class="measure-value">
+              <span>54cm</span>
+              <span class="status just-right">JUST RIGHT</span>
+            </div>
+          </div>
+          <div class="measurement-item">
+            <span class="measure-label">Sleeve length</span>
+            <div class="measure-value">
+              <span>54cm</span>
+              <span class="status long">LONG</span>
+            </div>
+          </div>
+          <div class="measurement-item">
+            <span class="measure-label">Shoulder width</span>
+            <div class="measure-value">
+              <span>54cm</span>
+              <span class="status little-tight">LITTLE TIGHT</span>
+            </div>
+          </div>
+          <div class="measurement-item">
+            <span class="measure-label">Waist</span>
+            <div class="measure-value">
+              <span>54cm</span>
+              <span class="status just-right">JUST RIGHT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Material Composition -->
+      <div class="material-composition">
+        <div class="composition-header">
+          <span>Material Composition</span>
+          <button class="info-icon">ⓘ</button>
+        </div>
+        <div class="materials-list">
+          <div class="material-item">
+            <span>20% Polyester</span>
+            <span class="material-property">LIGHT</span>
+          </div>
+          <div class="material-item">
+            <span>70% Cotton</span>
+            <span class="material-property">SOFT</span>
+          </div>
+          <div class="material-item">
+            <span>10% Spandex</span>
+            <span class="material-property">STRETCHY</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - 3D Viewer -->
+    <div class="model-viewer-panel">
+      <model-viewer 
+        id="product-3d-viewer"
+        src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+        alt="3D Model"
+        auto-rotate 
+        camera-controls 
+        ar
+        style="width: 100%; height: 100%;">
+        <div class="view-controls">
+          <span class="view-label">Views:</span>
+          <button class="view-button active" data-view="front">Front</button>
+          <button class="view-button" data-view="side">Side</button>
+          <button class="view-button" data-view="back">Back</button>
+        </div>
+        <div class="copyright">© Simflection</div>
+      </model-viewer>
+    </div>
+
+  </div>
+</div>
+
+<script type="module" src="https://unpkg.com/@google/model-viewer@latest"></script>
+
+<style>
+  .try-on-viewer-container {
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  .viewer-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: -1px;
+  }
+
+  .tab {
+    padding: 10px 20px;
+    border: none;
+    background: #f5f5f5;
+    cursor: pointer;
+  }
+
+  .tab.active {
+    background: white;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+  }
+
+  .viewer-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    background: white;
+    min-height: 600px;
+    width: 100%;
+  }
+
+  .measurement-panel {
+    padding: 20px;
+    border-right: 1px solid #eee;
+    background: white;
+  }
+
+  /* Size Recommendation Styles */
+  .size-recommendation {
+    background: #FFF9E6;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 30px;
+  }
+
+  .recommendation-label {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  .size-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .size-options {
+    display: flex;
+    gap: 20px;
+  }
+
+  .size-option {
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .size-option.selected {
+    font-weight: 600;
+  }
+
+  /* Fit Preference Styles */
+  .slider-container {
+    margin-top: 15px;
+  }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .fit-slider {
+    width: 100%;
+    height: 2px;
+    -webkit-appearance: none;
+    background: #FFD700;
+  }
+
+  .fit-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    background: black;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  /* Dimensions Styles */
+  .unit-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+  }
+
+  .toggle-track {
+    width: 40px;
+    height: 20px;
+    background: #ddd;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .toggle-track:before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: 0.3s;
+  }
+
+  .unit-label {
+    color: #666;
+  }
+
+  .unit-label.active {
+    color: black;
+  }
+
+  /* Measurement Status Styles */
+  .status {
+    font-size: 12px;
+    margin-left: 10px;
+  }
+
+  .just-right { color: #4CAF50; }
+  .long { color: #F44336; }
+  .little-tight { color: #FF9800; }
+
+  /* 3D Viewer Styles */
+  .model-viewer-panel {
+    background: #f5f5f5;
+    position: relative;
+    height: 100%;
+    min-height: 600px;
+    padding: 20px;
+  }
+
+  model-viewer {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+    background: #f5f5f5;
+    --poster-color: transparent;
+  }
+
+  .view-controls {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .copyright {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 2;
+  }
+
+  .progress-bar {
+    display: block;
+    width: 33%;
+    height: 3px;
+    max-width: 100%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .update-bar {
+    background: var(--progress-bar-color);
+    width: 0%;
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  #ar-button {
+    background: #fff;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    padding: 8px 16px;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: none;
+  }
+
+  /* Only show AR button if AR is available */
+  model-viewer[ar-status="not-presenting"] #ar-button {
+    display: block;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const modelViewer = document.querySelector('model-viewer');
+    if (!modelViewer) return;
+
+    const viewButtons = document.querySelectorAll('.view-button');
+    viewButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        viewButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        const view = this.dataset.view;
+        switch(view) {
+          case 'front':
+            modelViewer.setAttribute('camera-orbit', '0deg 75deg 105%');
+            break;
+          case 'side':
+            modelViewer.setAttribute('camera-orbit', '90deg 75deg 105%');
+            break;
+          case 'back':
+            modelViewer.setAttribute('camera-orbit', '180deg 75deg 105%');
+            break;
+        }
+      });
+    });
+
+    // Progress bar handling
+    const onProgress = (event) => {
+      const progressBar = event.target.querySelector('.progress-bar');
+      const updatingBar = event.target.querySelector('.update-bar');
+      
+      if (event.detail.totalProgress === 0) {
+        progressBar.classList.remove('hide');
+      }
+      
+      updatingBar.style.width = `${event.detail.totalProgress * 100}%`;
+      
+      if (event.detail.totalProgress === 1) {
+        progressBar.classList.add('hide');
+      }
+    };
+    
+    modelViewer.addEventListener('progress', onProgress);
+
+    // Unit toggle functionality
+    const unitToggle = document.getElementById('unitToggle');
+    const unitLabels = document.querySelectorAll('.unit-label');
+    
+    unitToggle.addEventListener('change', function() {
+      unitLabels.forEach(label => label.classList.toggle('active'));
+      
+      // Convert measurements
+      const measurements = document.querySelectorAll('.measure-value span:first-child');
+      measurements.forEach(measurement => {
+        const value = parseFloat(measurement.textContent);
+        if (this.checked) {
+          // Convert to inches
+          measurement.textContent = `${(value * 0.393701).toFixed(1)}in`;
+        } else {
+          // Convert to cm
+          measurement.textContent = `${value}cm`;
+        }
+      });
+    });
+  });
+</script>
+
+{% schema %}
+{
+  "name": "3D Try-On Viewer",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "viewer_title",
+      "label": "Viewer Title",
+      "default": "Virtual Try-On"
+    },
+    {
+      "type": "url",
+      "id": "model_url",
+      "label": "3D Model URL",
+      "info": "Enter the URL of your GLB format 3D model"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_ar",
+      "label": "Enable AR View",
+      "default": true
+    }
+  ]
+}
+{% endschema %} 

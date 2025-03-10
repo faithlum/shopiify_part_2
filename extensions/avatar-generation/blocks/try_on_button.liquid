@@ -1,16 +1,7 @@
-<div class="try-on-container">
+<div class="try-on-container" style="--button-color: {{ block.settings.button_color }}; --text-color: {{ block.settings.text_color }};">
   <button 
-    class="try-on-button" 
+    class="try-on-button custom-try-on-button" 
     onclick="showTryOnModal()"
-    style="
-      background: {{ block.settings.button_color }};
-      color: {{ block.settings.text_color }};
-      padding: 10px 20px;
-      border: none;
-      cursor: pointer;
-      width: 100%;
-      margin: 10px 0;
-    "
   >
     {{ block.settings.button_text }} ›
   </button>
@@ -94,9 +85,50 @@
   h3 {
     margin: 10px 0;
   }
+
+  .custom-try-on-button {
+    background: var(--button-color);
+    color: var(--text-color);
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    margin: 10px 0;
+  }
+
+  /* Add these new styles for the upload button */
+  #uploadButton {
+    width: 100%;
+    background: #000;
+    color: white;
+    padding: 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  #uploadButton:disabled {
+    opacity: 0.5;
+  }
 </style>
 
 <script>
+  // Add this at the very top of your script section
+  const originalConsoleWarn = console.warn;
+  const warningsSeen = new Set();
+  console.warn = function(...args) {
+    const message = args[0];
+    if (typeof message === 'string' && message.includes('third-party cookies')) {
+      if (!warningsSeen.has(message)) {
+        warningsSeen.add(message);
+        originalConsoleWarn.apply(console, args);
+      }
+      return;
+    }
+    originalConsoleWarn.apply(console, args);
+  };
+
   document.addEventListener("DOMContentLoaded", function() {
     // Create modals HTML
     const modalsHTML = `
@@ -105,14 +137,55 @@
         <div class="modal-content">
           <span class="close" onclick="closeModal('userTypeModal')">&times;</span>
           
-          <h2>First-Time User</h2>
-          <div class="user-option" onclick="showQRCode()">
-            <p>New here? Start here by scanning your body to create your avatar.</p>
-          </div>
+          <div style="padding: 20px;">
+            <h2 style="
+              font-size: 28px;
+              text-align: center;
+              margin-bottom: 30px;
+              font-weight: normal;
+            ">DISCOVER YOUR PERFECT FIT</h2>
+            
+          <img src="{{ 'tailor_measuring.png' | asset_img_url }}" 
+            alt="Tailor measuring" 
+            style="
+              width: 100%;
+              max-width: 300px;
+              height: auto;
+              margin: 20px auto;
+              display: block;
+            "
+          >
+            
+            <p style="
+              text-align: center;
+              font-size: 16px;
+              line-height: 1.5;
+              margin: 20px 0 30px;
+            ">Create your custom avatar and find your perfect size using just your phone camera.</p>
 
-          <h2>Returning User</h2>
-          <div class="user-option" onclick="showUploadAvatar()">
-            <p>If you've already scanned with us, let's get your avatar ready for try-on.</p>
+            <button onclick="showQRCode()" 
+              style="
+                width: 100%;
+                background: #000;
+                color: white;
+                padding: 16px;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                cursor: pointer;
+                margin-bottom: 20px;
+              "
+            >Get Started</button>
+
+            <div style="text-align: center;">
+              <a href="#" 
+                style="
+                  color: #000;
+                  text-decoration: underline;
+                  font-size: 14px;
+                "
+              >Already scanned?</a>
+            </div>
           </div>
         </div>
       </div>
@@ -120,31 +193,58 @@
       <!-- QR Code Modal -->
       <div id="qrCodeModal" class="modal">
         <div class="modal-content">
-          <div class="modal-header">
-            <button onclick="backToUserType('qrCodeModal')" class="back-button">←</button>
-            <span class="close" onclick="closeModal('qrCodeModal')">&times;</span>
+          <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <button onclick="backToUserType('qrCodeModal')" class="back-button" style="
+              font-size: 24px;
+              background: none;
+              border: none;
+              cursor: pointer;
+            ">←</button>
+            <button onclick="closeModal('qrCodeModal')" class="close" style="
+              font-size: 24px;
+              background: none;
+              border: none;
+              cursor: pointer;
+            ">×</button>
           </div>
           
-          <h2>START HERE</h2>
-          <img src="{{ 'qr-code.png' | asset_url }}" alt="QR Code" style="width: 200px; height: 200px;">
-          <p>Scan QR Code</p>
-          <p class="small-text">Follow the on-screen steps on your phone, then switch back to your laptop to try on the clothing.</p>
-        </div>
-      </div>
+          <div style="text-align: center; padding: 20px;">
+            <h2 style="
+              font-size: 24px;
+              margin-bottom: 40px;
+              font-weight: normal;
+            ">SCAN QR CODE</h2>
 
-      <!-- Upload Avatar Modal -->
-      <div id="uploadAvatarModal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button onclick="backToUserType('uploadAvatarModal')" class="back-button">←</button>
-            <span class="close" onclick="closeModal('uploadAvatarModal')">&times;</span>
-          </div>
-          
-          <h2>WELCOME BACK</h2>
-          <div class="upload-area">
-            <div class="upload-placeholder"></div>
-            <h3>Upload your avatar</h3>
-            <p class="small-text">Upload your avatar file (FBX format only).</p>
+            <img src="{{ 'qr_code.png' | asset_img_url }}" 
+              alt="QR Code" 
+              style="
+                width: 280px;
+                height: 280px;
+                margin: 0 auto 40px;
+                display: block;
+              "
+            >
+
+            <p style="
+              text-align: center;
+              font-size: 16px;
+              line-height: 1.5;
+              margin-bottom: 40px;
+              color: #333;
+            ">Follow the on-screen steps on your phone, then switch back to your laptop to try on the clothing.</p>
+
+            <button onclick="showUploadAvatar()"
+              style="
+                width: 100%;
+                background: #000;
+                color: white;
+                padding: 16px;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                cursor: pointer;
+              "
+            >Done Scanning</button>
           </div>
         </div>
       </div>
@@ -164,8 +264,8 @@
   }
 
   function showUploadAvatar() {
-    document.getElementById('userTypeModal').style.display = 'none';
-    document.getElementById('uploadAvatarModal').style.display = 'block';
+    // Placeholder for future functionality
+    console.log('Upload avatar functionality coming soon');
   }
 
   function backToUserType(currentModalId) {
