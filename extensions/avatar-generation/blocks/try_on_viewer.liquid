@@ -111,12 +111,17 @@
     <div class="model-viewer-panel">
       <model-viewer 
         id="product-3d-viewer"
-        src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
         alt="3D Model"
         auto-rotate 
         camera-controls 
         ar
-        style="width: 100%; height: 100%;">
+        style="width: 100%; height: 100%;"
+        loading="eager"
+        reveal="auto">
+        <div class="loading-spinner" slot="poster">
+          <div class="spinner"></div>
+          <div class="loading-text">Loading 3D Model...</div>
+        </div>
         <div class="view-controls">
           <span class="view-label">Views:</span>
           <button class="view-button active" data-view="front">Front</button>
@@ -354,12 +359,170 @@
   model-viewer[ar-status="not-presenting"] #ar-button {
     display: block;
   }
+
+  .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #000;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+  }
+
+  .loading-text {
+    font-size: 14px;
+    color: #333;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 </style>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const modelViewer = document.querySelector('model-viewer');
+    const modelViewer = document.querySelector('#product-3d-viewer');
     if (!modelViewer) return;
+
+    // Function to load model with cache-busting
+    function loadModel() {
+      // Add timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const modelUrl = `http://localhost:8000/static-model?t=${timestamp}`;
+      console.log('Attempting to load 3D model from:', modelUrl);
+
+      // Show loading spinner
+      const loadingSpinner = modelViewer.querySelector('.loading-spinner');
+      if (loadingSpinner) {
+        loadingSpinner.style.display = 'flex';
+      }
+
+      // Clear any existing object URLs
+      if (modelViewer.src && modelViewer.src.startsWith('blob:')) {
+        URL.revokeObjectURL(modelViewer.src);
+      }
+      
+      // Fetch with no-cache headers
+      fetch(modelUrl, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      })
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return response.blob();
+      })
+      .then(blob => {
+        const objectUrl = URL.createObjectURL(blob);
+        modelViewer.src = objectUrl;
+      })
+      .catch(err => {
+        console.error('Error fetching model:', err);
+        if (loadingSpinner) {
+          loadingSpinner.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+              <p style="color: #ff0000;">Error loading model</p>
+              <button onclick="loadModel()" style="
+                padding: 8px 16px;
+                margin-top: 10px;
+                background: #000;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+              ">Retry</button>
+            </div>
+          `;
+        }
+      });
+    }
+
+    // Initial load
+    loadModel();
+
+    // Add reload button
+    const viewerContainer = modelViewer.parentElement;
+    const reloadButton = document.createElement('button');
+    reloadButton.innerHTML = '↻ Reload Model';
+    reloadButton.style.cssText = `
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 8px 16px;
+      background: #000;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1000;
+    `;
+    reloadButton.onclick = loadModel;
+    viewerContainer.appendChild(reloadButton);
+
+    // Listen for model upload events from try_on_button
+    window.addEventListener('modelUploaded', (event) => {
+      console.log('New model uploaded, reloading viewer...', event.detail);
+      loadModel();
+    });
+
+    // Enhanced load event listener
+    modelViewer.addEventListener('load', (event) => {
+      console.log('Model loaded successfully at:', new Date().toISOString());
+      
+      // Hide loading spinner
+      const loadingSpinner = modelViewer.querySelector('.loading-spinner');
+      if (loadingSpinner) {
+        loadingSpinner.style.display = 'none';
+      }
+    });
+    
+    // Enhanced error handling
+    modelViewer.addEventListener('error', (error) => {
+      console.error('Error loading model:', error);
+      console.log('Model source attempted:', modelViewer.src);
+      console.log('Network status:', navigator.onLine ? 'Online' : 'Offline');
+      
+      // Check if backend is available
+      fetch(modelViewer.src, { method: 'HEAD' })
+        .then(response => {
+          console.log('Backend status:', response.status, response.statusText);
+        })
+        .catch(err => {
+          console.error('Backend check failed:', err);
+        });
+
+      const loadingSpinner = modelViewer.querySelector('.loading-spinner');
+      if (loadingSpinner) {
+        loadingSpinner.innerHTML = `
+          <div style="text-align: center; padding: 20px;">
+            <p style="color: #ff0000;">Error loading 3D model</p>
+            <button onclick="location.reload()" style="
+              padding: 8px 16px;
+              margin-top: 10px;
+              background: #000;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+            ">Retry</button>
+          </div>
+        `;
+      }
+    });
 
     const viewButtons = document.querySelectorAll('.view-button');
     viewButtons.forEach(button => {
@@ -433,12 +596,6 @@
       "id": "viewer_title",
       "label": "Viewer Title",
       "default": "Virtual Try-On"
-    },
-    {
-      "type": "url",
-      "id": "model_url",
-      "label": "3D Model URL",
-      "info": "Enter the URL of your GLB format 3D model"
     },
     {
       "type": "checkbox",

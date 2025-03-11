@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "17374faebae54e5f6ded894878b9c293"
-application_url = "https://shot-criminal-desperate-execute.trycloudflare.com"
+application_url = "https://differ-script-uncertainty-immigration.trycloudflare.com"
 embedded = true
 name = "3D-tryon"
 handle = "3d-tryon"
@@ -23,9 +23,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://shot-criminal-desperate-execute.trycloudflare.com/auth/callback",
-  "https://shot-criminal-desperate-execute.trycloudflare.com/auth/shopify/callback",
-  "https://shot-criminal-desperate-execute.trycloudflare.com/api/auth/callback"
+  "https://differ-script-uncertainty-immigration.trycloudflare.com/auth/callback",
+  "https://differ-script-uncertainty-immigration.trycloudflare.com/auth/shopify/callback",
+  "https://differ-script-uncertainty-immigration.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

@@ -248,6 +248,85 @@
           </div>
         </div>
       </div>
+
+      <!-- Upload Avatar Modal -->
+      <div id="uploadAvatarModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <button onclick="backToUserType('uploadAvatarModal')" class="back-button" style="
+              font-size: 24px;
+              background: none;
+              border: none;
+              cursor: pointer;
+            ">←</button>
+            <button onclick="closeModal('uploadAvatarModal')" class="close" style="
+              font-size: 24px;
+              background: none;
+              border: none;
+              cursor: pointer;
+            ">×</button>
+          </div>
+          
+          <div style="text-align: center; padding: 20px;">
+            <h2 style="
+              font-size: 24px;
+              margin-bottom: 40px;
+              font-weight: normal;
+            ">UPLOAD YOUR AVATAR</h2>
+
+            <div style="
+              width: 280px;
+              height: 280px;
+              margin: 0 auto 40px;
+              border: 2px dashed #ddd;
+              border-radius: 8px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              background: #f9f9f9;
+            ">
+              <input type="file" 
+                id="avatarFile" 
+                accept=".fbx"
+                style="display: none;"
+                onchange="handleFileSelect(this)"
+              >
+              <div id="uploadPlaceholder" style="cursor: pointer;" onclick="document.getElementById('avatarFile').click()">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <p style="
+                  margin-top: 15px;
+                  color: #666;
+                  font-size: 14px;
+                ">Click to upload your avatar file<br>(FBX format only)</p>
+              </div>
+              <div id="filePreview" style="display: none;">
+                <p style="color: #333; margin-bottom: 10px;"></p>
+              </div>
+            </div>
+
+            <button id="uploadButton"
+              onclick="uploadAvatar()"
+              style="
+                width: 100%;
+                background: #000;
+                color: white;
+                padding: 16px;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                cursor: pointer;
+                opacity: 0.5;
+              "
+              disabled
+            >Upload</button>
+          </div>
+        </div>
+      </div>
     `;
 
     // Insert modals into body
@@ -264,8 +343,33 @@
   }
 
   function showUploadAvatar() {
-    // Placeholder for future functionality
-    console.log('Upload avatar functionality coming soon');
+    document.getElementById('qrCodeModal').style.display = 'none';
+    document.getElementById('uploadAvatarModal').style.display = 'block';
+    
+    // Reset all upload-related elements
+    const fileInput = document.getElementById('avatarFile');
+    const uploadButton = document.getElementById('uploadButton');
+    const preview = document.getElementById('filePreview');
+    const placeholder = document.getElementById('uploadPlaceholder');
+    
+    // Reset file input
+    if (fileInput) {
+      fileInput.value = '';
+    }
+
+    // Reset upload button
+    if (uploadButton) {
+      uploadButton.disabled = true;
+      uploadButton.style.opacity = '0.5';
+      uploadButton.textContent = 'Upload';
+    }
+
+    // Reset preview and placeholder
+    if (preview && placeholder) {
+      preview.style.display = 'none';
+      preview.querySelector('p').textContent = '';
+      placeholder.style.display = 'block';
+    }
   }
 
   function backToUserType(currentModalId) {
@@ -275,6 +379,115 @@
 
   function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
+    
+    // Reset upload field and UI if closing the upload modal
+    if (modalId === 'uploadAvatarModal') {
+      // Reset file input
+      const fileInput = document.getElementById('avatarFile');
+      if (fileInput) {
+        fileInput.value = '';
+      }
+
+      // Reset upload button
+      const uploadButton = document.getElementById('uploadButton');
+      if (uploadButton) {
+        uploadButton.disabled = true;
+        uploadButton.style.opacity = '0.5';
+        uploadButton.textContent = 'Upload';
+      }
+
+      // Reset preview and placeholder
+      const preview = document.getElementById('filePreview');
+      const placeholder = document.getElementById('uploadPlaceholder');
+      if (preview && placeholder) {
+        preview.style.display = 'none';
+        preview.querySelector('p').textContent = '';
+        placeholder.style.display = 'block';
+      }
+    }
+  }
+
+  function handleFileSelect(input) {
+    const file = input.files[0];
+    const uploadButton = document.getElementById('uploadButton');
+    const placeholder = document.getElementById('uploadPlaceholder');
+    const preview = document.getElementById('filePreview');
+    
+    if (file) {
+      // Show file name and enable upload button
+      preview.style.display = 'block';
+      preview.querySelector('p').textContent = `Selected: ${file.name}`;
+      placeholder.style.display = 'none';
+      uploadButton.style.opacity = '1';
+      uploadButton.disabled = false;
+    } else {
+      // Reset to initial state
+      preview.style.display = 'none';
+      placeholder.style.display = 'block';
+      uploadButton.style.opacity = '0.5';
+      uploadButton.disabled = true;
+    }
+  }
+
+  function uploadAvatar() {
+    const fileInput = document.getElementById('avatarFile');
+    const file = fileInput.files[0];
+    const uploadButton = document.getElementById('uploadButton');
+    
+    if (file) {
+      // Show loading state
+      uploadButton.disabled = true;
+      uploadButton.textContent = 'Uploading...';
+
+      // Create FormData
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Log the file being sent
+      console.log('Sending file:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+
+      // Send to local backend
+      fetch('http://localhost:8000/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Upload successful:', data);
+        
+        // Dispatch custom event to notify model viewer
+        const event = new CustomEvent('modelUploaded', {
+          detail: {
+            timestamp: new Date().getTime(),
+            filename: 'avatar.fbx'
+          }
+        });
+        window.dispatchEvent(event);
+
+        // Close upload modal
+        closeModal('uploadAvatarModal');
+        alert('File uploaded successfully! Model viewer will update automatically.');
+      })
+      .catch(error => {
+        console.error('Upload error:', error);
+        alert('Upload failed: ' + error.message);
+      })
+      .finally(() => {
+        // Reset button state
+        uploadButton.disabled = false;
+        uploadButton.textContent = 'Upload';
+      });
+    }
   }
 
   // Close modal when clicking outside
