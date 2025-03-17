@@ -114,22 +114,11 @@
 </style>
 
 <script>
-  // Add this at the very top of your script section
-  const originalConsoleWarn = console.warn;
-  const warningsSeen = new Set();
-  console.warn = function(...args) {
-    const message = args[0];
-    if (typeof message === 'string' && message.includes('third-party cookies')) {
-      if (!warningsSeen.has(message)) {
-        warningsSeen.add(message);
-        originalConsoleWarn.apply(console, args);
-      }
-      return;
-    }
-    originalConsoleWarn.apply(console, args);
-  };
+  console.log('[DEBUG] Script starting in try_on_button');
 
   document.addEventListener("DOMContentLoaded", function() {
+    console.log('[DEBUG] DOMContentLoaded fired in try_on_button');
+    
     // Create modals HTML
     const modalsHTML = `
       <!-- User Type Modal -->
@@ -443,13 +432,6 @@
       const formData = new FormData();
       formData.append('file', file);
 
-      // Log the file being sent
-      console.log('Sending file:', {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      });
-
       // Send to local backend
       fetch('http://localhost:8000/upload', {
         method: 'POST',
@@ -465,22 +447,19 @@
       .then(data => {
         console.log('Upload successful:', data);
         
-        // Dispatch custom event to notify model viewer
-        const event = new CustomEvent('modelUploaded', {
-          detail: {
-            timestamp: new Date().getTime(),
-            filename: 'avatar.fbx'
-          }
-        });
-        window.dispatchEvent(event);
-
+        // Find the model viewer and call its loadModel function
+        const modelViewer = document.querySelector('#product-3d-viewer');
+        if (modelViewer && typeof modelViewer.loadModel === 'function') {
+          modelViewer.loadModel();
+        }
+        
         // Close upload modal
         closeModal('uploadAvatarModal');
-        alert('File uploaded successfully! Model viewer will update automatically.');
+        console.log('[Button] Modal closed');
       })
       .catch(error => {
-        console.error('Upload error:', error);
-        alert('Upload failed: ' + error.message);
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
       })
       .finally(() => {
         // Reset button state

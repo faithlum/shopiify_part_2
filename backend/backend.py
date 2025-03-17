@@ -7,16 +7,23 @@ from fastapi.staticfiles import StaticFiles
 from datetime import datetime
 import subprocess
 import asyncio
+from scripts.sizing_recommendation.sizing_recommender import get_size
+import json
 
 app = FastAPI()
 
-# Add CORS middleware
+# Add CORS middleware with specific origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development only
+    allow_origins=[
+        "https://simflection.myshopify.com",
+        "http://localhost:8000",
+        "http://localhost:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Recommended-Size", "X-Size-Comment"]  # Expose custom headers
 )
 
 # Create uploads directory
@@ -46,11 +53,11 @@ latest_model = get_latest_uploaded_file() or {
     "timestamp": datetime.now().isoformat()
 }
 
-async def run_processing_script(file_path):
+async def get_body_dim(file_path):
     """Run the processing script on the model file"""
     try:
         # You can replace this with your actual script path and parameters
-        script_path = "scripts/get_body_dim.js"  # or any other script you want to run
+        script_path = "scripts/get_body_dim/get_body_dim.js"  # or any other script you want to run
         print(f"Running processing script on: {file_path}")
         
         # Run Node.js script
@@ -71,6 +78,21 @@ async def run_processing_script(file_path):
     except Exception as e:
         print(f"Error running processing script: {e}")
         return False
+    
+async def sizing_rec():
+    try:
+        with open('scripts/get_body_dim/body_dim.json', 'r') as f:
+            sizing_data = json.load(f)
+    except Exception as e:
+        print(f"Error reading sizing data: {e}")
+        return {}
+    size_guide_path = 'scripts/sizing_recommendation/size_guide.csv' # hard code
+    gender = 'male' # hard code
+    category = 'top' # hard code
+    best_size, best_comment = get_size(size_guide_path, sizing_data, gender, category)
+    print("sizing_rec output backend")
+    print(best_size, best_comment)
+    return best_size, best_comment
 
 @app.get("/latest-model-info")
 async def get_latest_model_info():
@@ -84,36 +106,49 @@ async def get_latest_model_info():
 async def get_static_model():
     global latest_model
     current_latest = get_latest_uploaded_file()
-    print("in statitic model",current_latest)
+    print("in static model",current_latest)
     
     if current_latest and os.path.exists(current_latest["path"]):
-        # Update latest_model if there's a new file
-        if current_latest["path"] != latest_model["path"]:
-            latest_model = current_latest
-        
-        # Run the processing script
-        print("before calling run_processing_script")
-        await run_processing_script(current_latest["path"])
-        
-        # Determine media type based on file extension
-        file_ext = os.path.splitext(current_latest["path"])[1].lower()
-        media_type = {
-            '.glb': 'model/gltf-binary',
-            '.gltf': 'model/gltf+json',
-            '.obj': 'model/obj',
-        }.get(file_ext, 'application/octet-stream')
-        
-        return FileResponse(
-            current_latest["path"],
-            media_type=media_type,
-            filename=os.path.basename(current_latest["path"]),
-            headers={
+        try:
+            # Update latest_model if there's a new file
+            if current_latest["path"] != latest_model["path"]:
+                latest_model = current_latest
+            
+            # Run the processing script
+            print("before calling run_processing_script")
+            await get_body_dim(current_latest["path"])
+            recommended_size, recommended_comment = await sizing_rec()
+            print("before unpack", recommended_size, recommended_comment)
+            # Determine media type based on file extension
+            file_ext = os.path.splitext(current_latest["path"])[1].lower()
+            media_type = {
+                '.glb': 'model/gltf-binary',
+                '.gltf': 'model/gltf+json',
+                '.obj': 'model/obj',
+                '.fbx': 'application/octet-stream'
+            }.get(file_ext, 'application/octet-stream')
+            
+            headers = {
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 "Pragma": "no-cache",
                 "Expires": "0",
-                "Last-Modified": current_latest["timestamp"]
+                "Last-Modified": current_latest["timestamp"],
+                "X-Recommended-Size": str(recommended_size),
+                "X-Size-Comment": str(recommended_comment),
+                "Access-Control-Allow-Origin": "https://simflection.myshopify.com",
+                "Access-Control-Expose-Headers": "X-Recommended-Size, X-Size-Comment"
             }
-        )
+
+            return FileResponse(
+                current_latest["path"],
+                media_type=media_type,
+                filename=os.path.basename(current_latest["path"]),
+                headers=headers
+            )
+        except Exception as e:
+            print(f"Error in static-model endpoint: {str(e)}")
+            return {"error": str(e)}, 500
+            
     return {"error": "No model file found"}, 404
 
 @app.post("/upload")

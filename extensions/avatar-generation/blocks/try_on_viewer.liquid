@@ -11,18 +11,14 @@
       <div class="size-recommendation">
         <div class="recommendation-label">Recommended size</div>
         <div class="size-selector">
-          <button class="nav-button prev">‹</button>
           <div class="size-options">
-            <span class="size-option">XS</span>
-            <span class="size-option selected">S</span>
-            <span class="size-option">M</span>
+            <span class="size-option selected">N/A</span>
           </div>
-          <button class="nav-button next">›</button>
         </div>
       </div>
 
       <!-- Fit Preference with slider -->
-      <div class="fit-preference">
+      <div class="fit-preference" style="display: none;">
         <div class="preference-header">
           <span>Fit preference</span>
           <button class="info-icon">ⓘ</button>
@@ -39,46 +35,33 @@
       </div>
 
       <!-- Dimensions -->
-      <div class="dimensions">
+      <div class="dimensions" style="margin-bottom: 30px;">
         <div class="dimensions-header">
           <span>Dimensions</span>
-          <button class="info-icon">ⓘ</button>
-        </div>
-        <div class="unit-toggle">
-          <label class="switch">
-            <input type="checkbox" id="unitToggle">
-            <span class="toggle-track"></span>
-          </label>
-          <span class="unit-label active">cm</span>
-          <span class="unit-label">inch</span>
         </div>
         <div class="measurements-list">
           <div class="measurement-item">
             <span class="measure-label">Bust</span>
             <div class="measure-value">
-              <span>54cm</span>
-              <span class="status just-right">JUST RIGHT</span>
+              <span class="status">N/A</span>
             </div>
           </div>
           <div class="measurement-item">
             <span class="measure-label">Sleeve length</span>
             <div class="measure-value">
-              <span>54cm</span>
-              <span class="status long">LONG</span>
+              <span class="status">N/A</span>
             </div>
           </div>
           <div class="measurement-item">
             <span class="measure-label">Shoulder width</span>
             <div class="measure-value">
-              <span>54cm</span>
-              <span class="status little-tight">LITTLE TIGHT</span>
+              <span class="status">N/A</span>
             </div>
           </div>
           <div class="measurement-item">
             <span class="measure-label">Waist</span>
             <div class="measure-value">
-              <span>54cm</span>
-              <span class="status just-right">JUST RIGHT</span>
+              <span class="status">N/A</span>
             </div>
           </div>
         </div>
@@ -88,20 +71,10 @@
       <div class="material-composition">
         <div class="composition-header">
           <span>Material Composition</span>
-          <button class="info-icon">ⓘ</button>
         </div>
         <div class="materials-list">
           <div class="material-item">
-            <span>20% Polyester</span>
-            <span class="material-property">LIGHT</span>
-          </div>
-          <div class="material-item">
-            <span>70% Cotton</span>
-            <span class="material-property">SOFT</span>
-          </div>
-          <div class="material-item">
-            <span>10% Spandex</span>
-            <span class="material-property">STRETCHY</span>
+            <span class="material-value">N/A</span>
           </div>
         </div>
       </div>
@@ -388,129 +361,193 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+
+  /* Update the CSS for measurement items */
+  .measurement-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .measure-label {
+    font-size: 14px;
+    color: #333;
+  }
+
+  .measure-value {
+    display: flex;
+    align-items: center;
+  }
+
+  .status {
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .just-right { color: #4CAF50; }
+  .long { color: #F44336; }
+  .little-tight { color: #FF9800; }
+
+  /* Material Composition Styles */
+  .material-composition {
+    margin-top: 20px;
+  }
+
+  .composition-header {
+    margin-bottom: 15px;
+    font-weight: 500;
+  }
+
+  .material-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .material-value {
+    color: #666;
+    font-size: 14px;
+  }
 </style>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const modelViewer = document.querySelector('#product-3d-viewer');
-    if (!modelViewer) return;
+console.log('🔵 VIEWER SCRIPT - START LOADING');
 
-    // Function to load model with cache-busting
-    function loadModel() {
-      // Add timestamp to prevent caching
-      const timestamp = new Date().getTime();
-      const modelUrl = `http://localhost:8000/static-model?t=${timestamp}`;
-      console.log('Attempting to load 3D model from:', modelUrl);
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🔵 VIEWER SCRIPT - DOMContentLoaded fired');
+  
+  // Check if model viewer exists
+  const modelViewer = document.querySelector('#product-3d-viewer');
+  console.log('🔵 VIEWER SCRIPT - Model viewer found:', !!modelViewer);
+  
+  if (!modelViewer) {
+    console.error('🔴 VIEWER SCRIPT - Model viewer element not found!');
+    return;
+  }
 
-      // Show loading spinner
-      const loadingSpinner = modelViewer.querySelector('.loading-spinner');
-      if (loadingSpinner) {
-        loadingSpinner.style.display = 'flex';
-      }
-
-      // Clear any existing object URLs
-      if (modelViewer.src && modelViewer.src.startsWith('blob:')) {
-        URL.revokeObjectURL(modelViewer.src);
-      }
-      
-      // Fetch with no-cache headers
-      fetch(modelUrl, {
-        method: 'GET',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      })
-      .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.blob();
-      })
-      .then(blob => {
-        const objectUrl = URL.createObjectURL(blob);
-        modelViewer.src = objectUrl;
-      })
-      .catch(err => {
-        console.error('Error fetching model:', err);
-        if (loadingSpinner) {
-          loadingSpinner.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-              <p style="color: #ff0000;">Error loading model</p>
-              <button onclick="loadModel()" style="
-                padding: 8px 16px;
-                margin-top: 10px;
-                background: #000;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-              ">Retry</button>
-            </div>
-          `;
-        }
-      });
+  // Function to load model with cache-busting
+  function loadModel() {
+    // Show loading spinner
+    const loadingSpinner = modelViewer.querySelector('.loading-spinner');
+    if (loadingSpinner) {
+      loadingSpinner.style.display = 'flex';
     }
 
-    // Initial load
-    loadModel();
-
-    // Add reload button
-    const viewerContainer = modelViewer.parentElement;
-    const reloadButton = document.createElement('button');
-    reloadButton.innerHTML = '↻ Reload Model';
-    reloadButton.style.cssText = `
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 8px 16px;
-      background: #000;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      z-index: 1000;
-    `;
-    reloadButton.onclick = loadModel;
-    viewerContainer.appendChild(reloadButton);
-
-    // Listen for model upload events from try_on_button
-    window.addEventListener('modelUploaded', (event) => {
-      console.log('New model uploaded, reloading viewer...', event.detail);
-      loadModel();
-    });
-
-    // Enhanced load event listener
-    modelViewer.addEventListener('load', (event) => {
-      console.log('Model loaded successfully at:', new Date().toISOString());
-      
-      // Hide loading spinner
-      const loadingSpinner = modelViewer.querySelector('.loading-spinner');
-      if (loadingSpinner) {
-        loadingSpinner.style.display = 'none';
-      }
-    });
+    // Clear any existing object URLs
+    if (modelViewer.src && modelViewer.src.startsWith('blob:')) {
+      URL.revokeObjectURL(modelViewer.src);
+    }
     
-    // Enhanced error handling
-    modelViewer.addEventListener('error', (error) => {
-      console.error('Error loading model:', error);
-      console.log('Model source attempted:', modelViewer.src);
-      console.log('Network status:', navigator.onLine ? 'Online' : 'Offline');
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    const modelUrl = `http://localhost:8000/static-model?t=${timestamp}`;
+    console.log('[Viewer] Attempting to load 3D model from:', modelUrl);
+    
+    // Fetch with no-cache headers
+    fetch(modelUrl, {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        // Reset size display to N/A if no model is found
+        const sizeElement = document.querySelector('.size-option.selected');
+        if (sizeElement) {
+          sizeElement.textContent = 'N/A';
+        }
+        const recommendationLabel = document.querySelector('.recommendation-label');
+        if (recommendationLabel) {
+          recommendationLabel.innerHTML = 'Recommended size';
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
-      // Check if backend is available
-      fetch(modelViewer.src, { method: 'HEAD' })
-        .then(response => {
-          console.log('Backend status:', response.status, response.statusText);
-        })
-        .catch(err => {
-          console.error('Backend check failed:', err);
-        });
-
-      const loadingSpinner = modelViewer.querySelector('.loading-spinner');
+      // Get size information from headers
+      const recommendedSize = response.headers.get('X-Recommended-Size');
+      const sizeComment = response.headers.get('X-Size-Comment');
+      console.log("[Viewer] Recommended size:", recommendedSize);
+      
+      // Only update if we actually have a size recommendation
+      if (recommendedSize && recommendedSize !== 'None') {
+        const sizeElement = document.querySelector('.size-option.selected');
+        if (sizeElement) {
+          sizeElement.textContent = recommendedSize;
+          console.log('[Viewer] Updated size element');
+        }
+        
+        // Parse and update dimensions from the comment
+        if (sizeComment && sizeComment !== 'None') {
+          // Split comment into individual measurements
+          const measurements = sizeComment.split(';').map(m => m.trim());
+          
+          // Clear existing measurements list
+          const measurementsList = document.querySelector('.measurements-list');
+          measurementsList.innerHTML = '';
+          
+          // Process each measurement
+          measurements.forEach(measurement => {
+            // Split into words
+            const words = measurement.split(' ');
+            
+            // First word is the dimension name (e.g., "Chest")
+            const dimensionName = words[0];
+            
+            // Skip "area" and get remaining words for status
+            const status = words.slice(2).join(' ').toUpperCase();
+            
+            // Create status class based on the status text
+            let statusClass = '';
+            if (status.includes('JUST RIGHT')) statusClass = 'just-right';
+            else if (status.includes('LONG')) statusClass = 'long';
+            else if (status.includes('TIGHT')) statusClass = 'little-tight';
+            
+            // Create measurement item HTML
+            const measurementItem = `
+              <div class="measurement-item">
+                <span class="measure-label">${dimensionName}</span>
+                <div class="measure-value">
+                  <span class="status ${statusClass}">${status}</span>
+                </div>
+              </div>
+            `;
+            
+            measurementsList.innerHTML += measurementItem;
+          });
+          
+          // Update the recommendation label with just the size
+          const recommendationLabel = document.querySelector('.recommendation-label');
+          if (recommendationLabel) {
+            recommendationLabel.innerHTML = 'Recommended size';
+          }
+        }
+      }
+      
+      return response.blob();
+    })
+    .then(blob => {
+      const objectUrl = URL.createObjectURL(blob);
+      modelViewer.src = objectUrl;
+      console.log('[Viewer] Set new model URL');
+    })
+    .catch(err => {
+      console.error('[Viewer] Error fetching model:', err);
+      // Update size display to show error
+      const sizeElement = document.querySelector('.size-option.selected');
+      if (sizeElement) {
+        sizeElement.textContent = 'N/A';
+      }
+      
       if (loadingSpinner) {
         loadingSpinner.innerHTML = `
           <div style="text-align: center; padding: 20px;">
-            <p style="color: #ff0000;">Error loading 3D model</p>
-            <button onclick="location.reload()" style="
+            <p style="color: #ff0000;">Error loading model</p>
+            <button onclick="loadModel()" style="
               padding: 8px 16px;
               margin-top: 10px;
               background: #000;
@@ -523,67 +560,177 @@
         `;
       }
     });
+  }
 
-    const viewButtons = document.querySelectorAll('.view-button');
-    viewButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        viewButtons.forEach(btn => btn.classList.remove('active'));
-        this.classList.add('active');
-        
-        const view = this.dataset.view;
-        switch(view) {
-          case 'front':
-            modelViewer.setAttribute('camera-orbit', '0deg 75deg 105%');
-            break;
-          case 'side':
-            modelViewer.setAttribute('camera-orbit', '90deg 75deg 105%');
-            break;
-          case 'back':
-            modelViewer.setAttribute('camera-orbit', '180deg 75deg 105%');
-            break;
-        }
-      });
+  // Expose loadModel function globally
+  if (modelViewer) {
+    modelViewer.loadModel = loadModel;
+  }
+
+  // Add debug button for testing
+  const debugButton = document.createElement('button');
+  debugButton.innerHTML = 'Test Event';
+  debugButton.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    background: #ff0000;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 9999;
+  `;
+  
+  // Add click handler for debug button
+  debugButton.onclick = () => {
+    console.log('[Viewer Debug] Testing event dispatch...');
+    const testEvent = new CustomEvent('modelUploaded', {
+      detail: {
+        timestamp: new Date().getTime(),
+        filename: 'test.fbx',
+        size: 'TEST-L',
+        comment: 'Test Size Comment'
+      }
     });
+    window.dispatchEvent(testEvent);
+    console.log('[Viewer Debug] Test event dispatched');
+  };
+  
+  // Add debug info display
+  const debugInfo = document.createElement('div');
+  debugInfo.style.cssText = `
+    position: fixed;
+    bottom: 70px;
+    right: 20px;
+    padding: 10px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+  `;
+  debugInfo.innerHTML = 'Event Listener Status: Active';
+  
+  // Add debug elements to page
+  document.body.appendChild(debugButton);
+  document.body.appendChild(debugInfo);
 
-    // Progress bar handling
-    const onProgress = (event) => {
-      const progressBar = event.target.querySelector('.progress-bar');
-      const updatingBar = event.target.querySelector('.update-bar');
-      
-      if (event.detail.totalProgress === 0) {
-        progressBar.classList.remove('hide');
-      }
-      
-      updatingBar.style.width = `${event.detail.totalProgress * 100}%`;
-      
-      if (event.detail.totalProgress === 1) {
-        progressBar.classList.add('hide');
-      }
-    };
-    
-    modelViewer.addEventListener('progress', onProgress);
+  // Cleanup function
+  function cleanup() {
+    console.log('[Viewer Debug] Cleaning up event listener');
+    window.removeEventListener('modelUploaded', handleModelUpload);
+  }
 
-    // Unit toggle functionality
-    const unitToggle = document.getElementById('unitToggle');
-    const unitLabels = document.querySelectorAll('.unit-label');
+  // Clean up on page unload
+  window.addEventListener('unload', cleanup);
+
+  // Enhanced load event listener
+  modelViewer.addEventListener('load', (event) => {
+    console.log('Model loaded successfully at:', new Date().toISOString());
     
-    unitToggle.addEventListener('change', function() {
-      unitLabels.forEach(label => label.classList.toggle('active'));
-      
-      // Convert measurements
-      const measurements = document.querySelectorAll('.measure-value span:first-child');
-      measurements.forEach(measurement => {
-        const value = parseFloat(measurement.textContent);
-        if (this.checked) {
-          // Convert to inches
-          measurement.textContent = `${(value * 0.393701).toFixed(1)}in`;
-        } else {
-          // Convert to cm
-          measurement.textContent = `${value}cm`;
-        }
+    // Hide loading spinner
+    const loadingSpinner = modelViewer.querySelector('.loading-spinner');
+    if (loadingSpinner) {
+      loadingSpinner.style.display = 'none';
+    }
+  });
+  
+  // Enhanced error handling
+  modelViewer.addEventListener('error', (error) => {
+    console.error('Error loading model:', error);
+    console.log('Model source attempted:', modelViewer.src);
+    console.log('Network status:', navigator.onLine ? 'Online' : 'Offline');
+    
+    // Check if backend is available
+    fetch(modelViewer.src, { method: 'HEAD' })
+      .then(response => {
+        console.log('Backend status:', response.status, response.statusText);
+      })
+      .catch(err => {
+        console.error('Backend check failed:', err);
       });
+
+    const loadingSpinner = modelViewer.querySelector('.loading-spinner');
+    if (loadingSpinner) {
+      loadingSpinner.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+          <p style="color: #ff0000;">Error loading 3D model</p>
+          <button onclick="location.reload()" style="
+            padding: 8px 16px;
+            margin-top: 10px;
+            background: #000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          ">Retry</button>
+        </div>
+      `;
+    }
+  });
+
+  const viewButtons = document.querySelectorAll('.view-button');
+  viewButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      viewButtons.forEach(btn => btn.classList.remove('active'));
+      this.classList.add('active');
+      
+      const view = this.dataset.view;
+      switch(view) {
+        case 'front':
+          modelViewer.setAttribute('camera-orbit', '0deg 75deg 105%');
+          break;
+        case 'side':
+          modelViewer.setAttribute('camera-orbit', '90deg 75deg 105%');
+          break;
+        case 'back':
+          modelViewer.setAttribute('camera-orbit', '180deg 75deg 105%');
+          break;
+      }
     });
   });
+
+  // Progress bar handling
+  const onProgress = (event) => {
+    const progressBar = event.target.querySelector('.progress-bar');
+    const updatingBar = event.target.querySelector('.update-bar');
+    
+    if (event.detail.totalProgress === 0) {
+      progressBar.classList.remove('hide');
+    }
+    
+    updatingBar.style.width = `${event.detail.totalProgress * 100}%`;
+    
+    if (event.detail.totalProgress === 1) {
+      progressBar.classList.add('hide');
+    }
+  };
+  
+  modelViewer.addEventListener('progress', onProgress);
+
+  // Unit toggle functionality
+  const unitToggle = document.getElementById('unitToggle');
+  const unitLabels = document.querySelectorAll('.unit-label');
+  
+  unitToggle.addEventListener('change', function() {
+    unitLabels.forEach(label => label.classList.toggle('active'));
+    
+    // Convert measurements
+    const measurements = document.querySelectorAll('.measure-value span:first-child');
+    measurements.forEach(measurement => {
+      const value = parseFloat(measurement.textContent);
+      if (this.checked) {
+        // Convert to inches
+        measurement.textContent = `${(value * 0.393701).toFixed(1)}in`;
+      } else {
+        // Convert to cm
+        measurement.textContent = `${value}cm`;
+      }
+    });
+  });
+});
 </script>
 
 {% schema %}
