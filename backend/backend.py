@@ -4,7 +4,7 @@ import uvicorn
 import asyncio
 from datetime import datetime
 import subprocess
-from fastapi import FastAPI, File, UploadFile, Request
+from fastapi import FastAPI, File, UploadFile, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -158,7 +158,12 @@ async def get_sizing():
     return {"error": "No model file found"}, 404
 
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(None), email: str="temp", useDefault: bool = False):
+# async def upload_file(file: UploadFile = File(None), email: str="temp", useDefault: bool = False):
+async def upload_file(
+    file: UploadFile = File(None),     # 'file' from <input type="file">
+    email: str = Form(None),          # 'email' from <input type="text" or "email">
+    useDefault: bool = Form(False)    # 'useDefault' from a hidden/input form field
+):
     global latest_model
 
     print("inside /upload")
