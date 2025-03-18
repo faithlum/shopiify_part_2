@@ -158,8 +158,11 @@ async def get_sizing():
     return {"error": "No model file found"}, 404
 
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(None), useDefault: bool = False):
+async def upload_file(file: UploadFile = File(None), email: str="temp", useDefault: bool = False):
     global latest_model
+
+    print("inside /upload")
+    print(email)
 
     if useDefault:
         default_file = "default_joseph.fbx"

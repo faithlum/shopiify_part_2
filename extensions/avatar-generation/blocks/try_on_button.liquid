@@ -200,7 +200,6 @@
           </div>
         </div>
       </div>
-
       <!-- Upload Avatar Modal -->
       <div id="uploadAvatarModal" class="modal">
         <div class="modal-content">
@@ -211,6 +210,17 @@
           
           <div style="text-align: center; padding: 20px;">
             <h2 style="font-size: 24px; margin-bottom: 40px; font-weight: normal;">UPLOAD YOUR AVATAR</h2>
+
+            <!-- New Email Field -->
+            <div style="margin-bottom: 20px;">
+              <input 
+                type="email" 
+                id="userEmail" 
+                placeholder="Your Email" 
+                style="width: 100%; padding: 10px; font-size: 14px; border: 1px solid #ddd; border-radius: 4px;"
+                oninput="checkUploadButtonState()"  <!-- On each keystroke, re-check if both fields are valid -->
+              >
+            </div>
 
             <!-- Entire area is clickable now -->
             <div 
@@ -257,6 +267,7 @@
           </div>
         </div>
       </div>
+
     `;
 
     // Insert modals into body
@@ -417,12 +428,20 @@
       return;
     }
 
+    const email = document.getElementById('userEmail').value.trim();
+
+    if (!email) {
+      alert("No email entered.");
+      return;
+    }
+
     const uploadButton = document.getElementById('uploadButton');
     uploadButton.disabled = true;
     uploadButton.textContent = 'Uploading...';
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('email', email);
 
     fetch('http://localhost:8000/upload', {
       method: 'POST',
