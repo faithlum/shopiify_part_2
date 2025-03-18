@@ -9,6 +9,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from scripts.sizing_recommendation.sizing_recommender import get_size
+import boto3
+import hashlib
+
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+table = dynamodb.Table('user_data')
+EMAIL = None
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -157,6 +163,9 @@ async def get_sizing():
             
     return {"error": "No model file found"}, 404
 
+def generate_user_id(email):
+    return hashlib.sha256(email.encode()).hexdigest()[:16]
+
 @app.post("/upload")
 # async def upload_file(file: UploadFile = File(None), email: str="temp", useDefault: bool = False):
 async def upload_file(
@@ -165,9 +174,9 @@ async def upload_file(
     useDefault: bool = Form(False)    # 'useDefault' from a hidden/input form field
 ):
     global latest_model
+    global EMAIL 
 
-    print("inside /upload")
-    print(email)
+    EMAIL = email
 
     if useDefault:
         default_file = "default_joseph.fbx"
@@ -204,6 +213,33 @@ async def upload_file(
         }
         
         print(f"New model saved as: {file_path}")
+
+        get_body_dim(file_path)
+        with open('scripts/get_body_dim/body_dim.json', 'r') as f:
+            body_dim = json.load(f)
+
+        print("CALL DB here")
+        print(email)
+        print(body_dim)
+
+        user_id = generate_user_id(email)
+
+        for k, v in body_dim.items():
+            try:
+                table.update_item(
+                    Key={'user_id': user_id},
+                    UpdateExpression=f"SET {k} = :{k}",
+                    ExpressionAttributeValues={f':{k}': str(v)},
+                    ConditionExpression="attribute_exists(user_id)"  # Ensures user_id exists
+                )
+                print("Row updated successfully!")
+
+            except boto3.exceptions.botocore.exceptions.ClientError as e:
+                if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                    print("Error: user_id does not exist!")
+                else:
+                    print("Unexpected error:", e)
+
         return {
             "filename": "avatar.fbx",
             "size": len(content),
@@ -222,15 +258,58 @@ async def selected_animation(request: Request):
     and return the corresponding video URL.
     """
 
+    global EMAIL
+    
     body = await request.json()
     selected_animation = body.get("animation", "default")
+    product_title = body.get("productTitle", "Unknown Title")
+    product_id = body.get("productId", "Unknown ID")
+
+    product_id_to_garment_name_mapping = {
+        9918248943925: "tank"
+    }
+
+    garment_name = product_id_to_garment_name_mapping[product_id]
+
+    if EMAIL == None:
+        video_url = f"http://localhost:8000/animations/default/{selected_animation}.mp4"
+
+        return {
+            "message": "Animation received successfully",
+            "video_url": video_url
+        }
+
+
+    user_id = generate_user_id(EMAIL)
+    try:
+        response = table.get_item(
+            Key={'user_id': user_id}
+        )
+        height = response['height']
+        bust = response['bust']
+        waist = response['waist']
+        hips = response['hips']
+        inseam = response['inseam']
+    except Exception as e:
+        print("Error getting item:", e)
+    
+    cmd = [
+        "conda", "run", "-n", "hood", 
+        "python", ""
+    ]
+
+    # TODO call the get simulation script in hood
+    # make sure the simulation is saved in the animation folder
+    # check if the video exists before generation
+    # create directory if it doesn't exist (in the output file path)
+
+
+
     
     print(f"[Backend] Animation received: {selected_animation}")
 
-    # TODO get animation from aws
-
     # Build the video URL
-    video_url = f"http://localhost:8000/animations/{selected_animation}.mp4"
+    video_url = f"http://localhost:8000/animations/default/{selected_animation}.mp4"
 
     # Return a JSON response with the video URL
     return {

@@ -100,20 +100,15 @@
 
         <!-- Scrolling Row with Left/Right Arrows -->
         <div class="animation-scroller">
-          <button class="arrow-button" id="prevAnimation">‹</button>
+          <!--button class="arrow-button" id="prevAnimation">‹</button-->
           
           <div class="animation-buttons-container">
             <button class="animation-button" data-animation="walking">Walking</button>
             <button class="animation-button" data-animation="jumping">Jumping</button>
-            <button class="animation-button" data-animation="ballet">Ballet</button>
-            <button class="animation-button" data-animation="basketball">Basketball</button>
-            <button class="animation-button" data-animation="soccer">Soccer</button>
-            <button class="animation-button" data-animation="sideflip">Sideflip</button>
-            <button class="animation-button" data-animation="backhandflip">Backhandflip</button>
             <button class="animation-button" data-animation="gymnastics">Gymnastics</button>
           </div>
 
-          <button class="arrow-button" id="nextAnimation">›</button>
+          <!--button class="arrow-button" id="nextAnimation">›</button-->
         </div>
       </div>
 
@@ -456,13 +451,22 @@
     // 2) Animation button handling
     function sendAnimationToBackend(animation) {
       console.log('[Viewer] Sending selected animation to backend:', animation);
+      var productTitle = "{{ product.title }}";
+      var productId = "{{ product.id }}";
+
+      console.log(productTitle);
+      console.log(productId);
 
       return fetch('http://localhost:8000/selected-animation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ animation })
+        body: JSON.stringify({
+          animation: animation,
+          productTitle: productTitle,
+          productId: productId
+        })
       })
       .then(response => {
         if (!response.ok) {
