@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "17374faebae54e5f6ded894878b9c293"
-application_url = "https://dir-to-sk-laos.trycloudflare.com"
+application_url = "https://substantial-example-fix-backing.trycloudflare.com"
 embedded = true
 name = "3D-tryon"
 handle = "3d-tryon"
@@ -23,9 +23,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://dir-to-sk-laos.trycloudflare.com/auth/callback",
-  "https://dir-to-sk-laos.trycloudflare.com/auth/shopify/callback",
-  "https://dir-to-sk-laos.trycloudflare.com/api/auth/callback"
+  "https://substantial-example-fix-backing.trycloudflare.com/auth/callback",
+  "https://substantial-example-fix-backing.trycloudflare.com/auth/shopify/callback",
+  "https://substantial-example-fix-backing.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
