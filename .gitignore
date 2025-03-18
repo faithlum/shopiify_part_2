@@ -15,7 +15,7 @@ database.sqlite
 
 backend/my_env
 
-
+backend/animations
 
 /extensions/*/dist
 

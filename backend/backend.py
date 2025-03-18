@@ -1,18 +1,52 @@
-from fastapi import FastAPI, File, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
 import os
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+import json
+import uvicorn
+import asyncio
 from datetime import datetime
 import subprocess
-import asyncio
+from fastapi import FastAPI, File, UploadFile, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from scripts.sizing_recommendation.sizing_recommender import get_size
-import json
+
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+def get_latest_uploaded_file():
+    """Get the most recently uploaded file from the uploads directory."""
+    try:
+        files = [
+            os.path.join(UPLOAD_DIR, f)
+            for f in os.listdir(UPLOAD_DIR)
+            if os.path.isfile(os.path.join(UPLOAD_DIR, f))
+        ]
+        if not files:
+            return None
+        latest_file = max(files, key=os.path.getmtime)
+        print("latest_file", latest_file)
+        return {
+            "path": latest_file,
+            "timestamp": datetime.fromtimestamp(os.path.getmtime(latest_file)).isoformat()
+        }
+    except Exception as e:
+        print(f"Error getting latest file: {e}")
+        return None
+
+# Initialize latest_model after the helper is defined
+found_file = get_latest_uploaded_file()
+if found_file:
+    latest_model = found_file
+else:
+    latest_model = {
+        "path": "",
+        "timestamp": datetime.now().isoformat()
+    }
 
 app = FastAPI()
+app.mount("/animations", StaticFiles(directory="animations"), name="animations") 
 
-# Add CORS middleware with specific origins
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -23,46 +57,17 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["X-Recommended-Size", "X-Size-Comment"]  # Expose custom headers
+    expose_headers=["X-Recommended-Size", "X-Size-Comment"]
 )
 
-# Create uploads directory
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-def get_latest_uploaded_file():
-    """Get the most recently uploaded file from the uploads directory"""
-    try:
-        files = [os.path.join(UPLOAD_DIR, f) for f in os.listdir(UPLOAD_DIR) if os.path.isfile(os.path.join(UPLOAD_DIR, f))]
-        if not files:
-            return None
-        # Get the most recently modified file
-        latest_file = max(files, key=os.path.getmtime)
-        print("latest_file",latest_file)
-        return {
-            "path": latest_file,
-            "timestamp": datetime.fromtimestamp(os.path.getmtime(latest_file)).isoformat()
-        }
-    except Exception as e:
-        print(f"Error getting latest file: {e}")
-        return None
-
-# Initialize latest model with the most recent file
-latest_model = get_latest_uploaded_file() or {
-    "path": "",
-    "timestamp": datetime.now().isoformat()
-}
-
 async def get_body_dim(file_path):
-    """Run the processing script on the model file"""
+    """Run the processing script on the model file."""
     try:
-        # You can replace this with your actual script path and parameters
-        script_path = "scripts/get_body_dim/get_body_dim.js"  # or any other script you want to run
+        script_path = "scripts/get_body_dim/get_body_dim.js"  # Node.js script
         print(f"Running processing script on: {file_path}")
         
-        # Run Node.js script
         process = await asyncio.create_subprocess_exec(
-            'node', script_path,
+            'node', script_path, file_path,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -78,7 +83,7 @@ async def get_body_dim(file_path):
     except Exception as e:
         print(f"Error running processing script: {e}")
         return False
-    
+
 async def sizing_rec():
     try:
         with open('scripts/get_body_dim/body_dim.json', 'r') as f:
@@ -86,9 +91,9 @@ async def sizing_rec():
     except Exception as e:
         print(f"Error reading sizing data: {e}")
         return {}
-    size_guide_path = 'scripts/sizing_recommendation/size_guide.csv' # hard code
-    gender = 'male' # hard code
-    category = 'top' # hard code
+    size_guide_path = 'scripts/sizing_recommendation/size_guide.csv'
+    gender = 'male'
+    category = 'top'
     best_size, best_comment = get_size(size_guide_path, sizing_data, gender, category)
     print("sizing_rec output backend")
     print(best_size, best_comment)
@@ -102,11 +107,11 @@ async def get_latest_model_info():
         latest_model = current_latest
     return latest_model
 
-@app.get("/static-model")
-async def get_static_model():
+@app.get("/get-sizing")
+async def get_sizing():
     global latest_model
     current_latest = get_latest_uploaded_file()
-    print("in static model",current_latest)
+    print("in get_sizing", current_latest)
     
     if current_latest and os.path.exists(current_latest["path"]):
         try:
@@ -119,7 +124,8 @@ async def get_static_model():
             await get_body_dim(current_latest["path"])
             recommended_size, recommended_comment = await sizing_rec()
             print("before unpack", recommended_size, recommended_comment)
-            # Determine media type based on file extension
+
+            # Determine media type
             file_ext = os.path.splitext(current_latest["path"])[1].lower()
             media_type = {
                 '.glb': 'model/gltf-binary',
@@ -152,29 +158,44 @@ async def get_static_model():
     return {"error": "No model file found"}, 404
 
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    try:
-        # Always save as avatar.fbx
-        file_path = os.path.join(UPLOAD_DIR, "avatar.fbx")
+async def upload_file(file: UploadFile = File(None), useDefault: bool = False):
+    global latest_model
+
+    if useDefault:
+        default_file = "default_joseph.fbx"
+        default_file_path = os.path.join(UPLOAD_DIR, default_file)
+        avatar_file_path = os.path.join(UPLOAD_DIR, "avatar.fbx")
         
-        # Remove existing file if it exists
+        # Copy default file to avatar.fbx
+        with open(default_file_path, "rb") as src, open(avatar_file_path, "wb") as dst:
+            dst.write(src.read())
+        
+        latest_model = {
+            "path": avatar_file_path,
+            "timestamp": datetime.now().isoformat()
+        }
+        return {
+            "filename": f"{UPLOAD_DIR}/default_joseph.fbx"
+        }
+    
+    if file is None:
+        return {"error": "File must be provided if useDefault is False"}, 400
+    
+    try:
+        file_path = os.path.join(UPLOAD_DIR, "avatar.fbx")
         if os.path.exists(file_path):
             os.remove(file_path)
         
-        # Save the new file
         with open(file_path, "wb") as buffer:
             content = await file.read()
             buffer.write(content)
         
-        # Update latest model info
-        global latest_model
         latest_model = {
             "path": file_path,
             "timestamp": datetime.now().isoformat()
         }
         
         print(f"New model saved as: {file_path}")
-        
         return {
             "filename": "avatar.fbx",
             "size": len(content),
@@ -184,6 +205,30 @@ async def upload_file(file: UploadFile = File(...)):
     except Exception as e:
         print(f"Error: {str(e)}")
         return {"error": str(e)}, 500
+
+
+@app.post("/selected-animation")
+async def selected_animation(request: Request):
+    """
+    Endpoint to receive the selected animation from the frontend
+    and return the corresponding video URL.
+    """
+
+    body = await request.json()
+    selected_animation = body.get("animation", "default")
+    
+    print(f"[Backend] Animation received: {selected_animation}")
+
+    # TODO get animation from aws
+
+    # Build the video URL
+    video_url = f"http://localhost:8000/animations/{selected_animation}.mp4"
+
+    # Return a JSON response with the video URL
+    return {
+        "message": "Animation received successfully",
+        "video_url": video_url
+    }
 
 @app.get("/")
 async def root():

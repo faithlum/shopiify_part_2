@@ -26,7 +26,8 @@ const scene = new THREE.Scene();
 const fbxLoader = new FBXLoader();
 
 // Get file paths
-const avatarFilePath = path.resolve(__dirname, '../../uploads/avatar.fbx');
+const avatarInFilePath = process.argv[2];
+const avatarFilePath = path.resolve(__dirname, '../../${avatarInFilePath}');
 const tposeFilePath = path.resolve(__dirname, '../../uploads/tpose.fbx');
 const bodyDimFilePath = path.resolve(__dirname, 'body_dim.json');
 
