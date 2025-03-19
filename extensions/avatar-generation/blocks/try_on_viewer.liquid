@@ -84,13 +84,30 @@
     <!-- Right Panel - Video Viewer -->
     <div class="model-viewer-panel">
       <!-- Video Container -->
-      <div class="video-container">
-        <video id="product-video" controls autoplay>
-          <source src="" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
-        <p id="no-animation-message" style="text-align: center; color: #FF0000; display: none;">Animation Unavailable</p>
-      </div>
+        <!-- Video Container -->
+        <div class="video-container">
+          <video id="product-video" controls autoplay style="display: none;">
+            <source src="" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+          
+          <!-- Simulation Unavailable Message (shown initially) -->
+          <div id="simulationUnavailable" class="message-box">
+            Simulation Unavailable
+          </div>
+
+          <!-- Loading Indicator -->
+          <div id="loadingIndicator" class="loading-spinner" style="display:none;">
+            <div class="spinner"></div>
+            <div class="loading-text">Loading animation...</div>
+          </div>
+
+          <!-- Animation unavailable after failure -->
+          <div id="no-animation-message" class="message-box" style="display: none;">
+            Animation Unavailable
+          </div>
+        </div>
+
 
 
       <!-- Animation Controls -->
@@ -201,19 +218,88 @@
   /* Video Container */
   .video-container {
     width: 100%;
-    height: auto;
-    background-color: transparent;
+    height: 450px; /* fixed height to ensure no layout shifts */
+    position: relative; /* important for positioning children absolutely */
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 0px;
   }
 
   #product-video {
     width: 90%;
     max-width: 700px;
-    height: auto;
+    height: 100%;
     object-fit: contain;
+  }
+
+  .message-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #888;
+    background-color: #f9f9f9;
+  }
+
+  .loading-spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #000;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+  }
+
+  .loading-text {
+    font-size: 14px;
+    color: #333;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Fix the position for animation bar and copyright */
+  .animation-controls {
+    margin-top: 20px;
+    background-color: white;
+    padding: 10px;
+    position: absolute;
+    bottom: 40px; /* fix position, adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .copyright {
+    position: absolute;
+    bottom: 10px; /* adjust as needed */
+    right: 10px;
+  }
+
+  /* Message when animation is unavailable */
+  #no-animation-message {
+    text-align: center;
+    color: red;
   }
 
 
@@ -320,52 +406,15 @@
   }
 
 
-  .loading-spinner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.8);
-  }
-
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #000;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 10px;
-  }
-
-  .loading-text {
-    font-size: 14px;
-    color: #333;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  /* Simflection Footer Alignment */
-  .copyright {
-    text-align: right;
-    margin-top: 20px; /* some spacing above */
-  }
-
-  /* Message when animation is unavailable */
-  #no-animation-message {
-    text-align: center;
-    color: red;
-  }
 </style>
 
 <script>
   console.log('🔵 VIEWER SCRIPT - START LOADING');
   document.addEventListener('DOMContentLoaded', function() {
     console.log('🔵 VIEWER SCRIPT - DOMContentLoaded fired');
+
+    // 🚨 Reset avatarChosen to false on page load
+    localStorage.setItem('avatarChosen', 'false');
 
     // For animation scroller
     const container = document.querySelector('.animation-buttons-container');
@@ -490,31 +539,57 @@
     const animationButtons = document.querySelectorAll('.animation-button');
     const videoElement = document.getElementById('product-video');
     const noAnimationMessage = document.getElementById('no-animation-message');
-    
+
+    // Handle click on animation buttons
     animationButtons.forEach(button => {
       button.addEventListener('click', function() {
         const selectedAnimation = this.dataset.animation;
-        console.log('[Viewer] Animation selected:', selectedAnimation);
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const videoElement = document.getElementById('product-video');
+        const noAnimationMessage = document.getElementById('no-animation-message');
+        const simulationUnavailable = document.getElementById('simulationUnavailable');
 
-        // Call the function, then set the <video> src from the returned URL
+        // 🚨 Stronger check for avatar selection
+        const avatarChosen = localStorage.getItem('avatarChosen');
+        console.log("Avatar chosen state:", avatarChosen); // Debugging log
+        if (avatarChosen !== "true") {
+          alert("Please click the Try-on button first to select default avatar or upload an avatar before playing animations.");
+          return; // 🚫 Stop execution here, do not proceed
+        }
+
+        // Start Loading: show loader, hide other messages and video
+        loadingIndicator.style.display = 'flex';
+        simulationUnavailable.style.display = 'none';
+        noAnimationMessage.style.display = 'none';
+        videoElement.style.display = 'none';
+
+        // Fetch animation from backend
         sendAnimationToBackend(selectedAnimation)
           .then(videoUrl => {
-            if (selectedAnimation) {
+            if (videoUrl) {
+              loadingIndicator.style.display = 'none';
+              simulationUnavailable.style.display = 'none';
               noAnimationMessage.style.display = 'none';
-              // Use the videoUrl from the backend
               videoElement.src = videoUrl;
+              videoElement.style.display = 'block';
               videoElement.play();
               videoElement.loop = true;
             } else {
-              noAnimationMessage.style.display = 'block';
+              loadingIndicator.style.display = 'none';
+              simulationUnavailable.style.display = 'none';
+              noAnimationMessage.style.display = 'flex';
             }
           })
           .catch(error => {
-            // If there's an error (e.g., network or server), handle it here
             console.error('[Viewer] Error:', error);
+            loadingIndicator.style.display = 'none';
+            simulationUnavailable.style.display = 'none';
+            noAnimationMessage.style.display = 'flex';
           });
       });
     });
+
+
 
   });
 </script>

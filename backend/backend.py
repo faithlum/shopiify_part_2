@@ -265,56 +265,84 @@ async def selected_animation(request: Request):
     product_title = body.get("productTitle", "Unknown Title")
     product_id = body.get("productId", "Unknown ID")
 
+    print(f"[Backend] Animation received: {selected_animation}")
+    
     product_id_to_garment_name_mapping = {
-        9918248943925: "tank"
+        '9918248943925': "tank"
     }
 
     garment_name = product_id_to_garment_name_mapping[product_id]
 
     if EMAIL == None:
-        video_url = f"http://localhost:8000/animations/default/{selected_animation}.mp4"
+        output_url = f"http://localhost:8000/animations/default/{garment_name}/{selected_animation}.mp4"
 
         return {
             "message": "Animation received successfully",
-            "video_url": video_url
+            "output_url": output_url
         }
 
 
     user_id = generate_user_id(EMAIL)
+
+    print(EMAIL)
+
     try:
         response = table.get_item(
             Key={'user_id': user_id}
         )
-        height = response['height']
-        bust = response['bust']
-        waist = response['waist']
-        hips = response['hips']
-        inseam = response['inseam']
+        print(response)
+        height = response['Item']['height']
+        bust = response['Item']['bust']
+        waist = response['Item']['waist']
+        hips = response['Item']['hips']
+        inseam = response['Item']['inseam']
+        gender = response['Item']['sex']
     except Exception as e:
         print("Error getting item:", e)
-    
-    cmd = [
-        "conda", "run", "-n", "hood", 
-        "python", ""
-    ]
 
-    # TODO call the get simulation script in hood
-    # make sure the simulation is saved in the animation folder
-    # check if the video exists before generation
-    # create directory if it doesn't exist (in the output file path)
+    print(height)
 
+    if selected_animation == "apose":
+        out_file = f"animations/{user_id}/{garment_name}/{selected_animation}.glb"
+    else:
+        out_file = f"animations/{user_id}/{garment_name}/{selected_animation}.mp4"
 
+    if not os.path.exists(out_file):
+        os.makedirs(os.path.dirname(out_file), exist_ok=True)
+        cmd = [
+            "conda", "run", "-n", "hood", 
+            "python", "../../HOOD/get_simulation.py",
+            "--height", height,
+            "--bust", bust,
+            "--waist", waist,
+            "--hips", hips,
+            "--inseam", inseam,
+            "--pose", selected_animation,
+            "--garment_name", garment_name,
+            "--gender", gender.upper(),
+            "--out_file", out_file,
+            "--body_dim_to_smpl_model_dir", "../../HOOD/body_dim_to_smpl"
+        ]
 
-    
-    print(f"[Backend] Animation received: {selected_animation}")
+        print(cmd)
+
+        process = subprocess.run(cmd, capture_output=True, text=True)
+
+        if process.returncode != 0:
+            # Log or handle error
+            error_msg = process.stderr or "Unknown error"
+            return {"error": f"Subprocess failed: {error_msg}"}
+        
+        output = process.stdout.strip()
+        print("Subprocess output:", output)
 
     # Build the video URL
-    video_url = f"http://localhost:8000/animations/default/{selected_animation}.mp4"
+    output_url = f"http://localhost:8000/{out_file}"
 
     # Return a JSON response with the video URL
     return {
         "message": "Animation received successfully",
-        "video_url": video_url
+        "output_url": output_url
     }
 
 @app.get("/")
