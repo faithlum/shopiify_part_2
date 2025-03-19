@@ -274,7 +274,10 @@ async def selected_animation(request: Request):
     garment_name = product_id_to_garment_name_mapping[product_id]
 
     if EMAIL == None:
-        output_url = f"http://localhost:8000/animations/default/{garment_name}/{selected_animation}.mp4"
+        if selected_animation == "apose":
+            output_url = f"http://localhost:8000/animations/default/{garment_name}/{selected_animation}.glb"
+        else:
+            output_url = f"http://localhost:8000/animations/default/{garment_name}/{selected_animation}.mp4"
 
         return {
             "message": "Animation received successfully",
