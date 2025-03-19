@@ -1,6 +1,6 @@
 <div class="try-on-viewer-container">
   <div class="viewer-tabs">
-    <button class="tab active">Try-on</button>
+    <button class="tab active" id="try-on-tab">Try-on</button>
     <button class="tab">Body Measurements</button>
   </div>
 
@@ -168,11 +168,13 @@
 
   .viewer-layout {
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: 300px 1fr; /* Default: side-by-side */
     gap: 20px;
     background: white;
     min-height: 600px;
     width: 100%;
+    position: relative;
+    padding-bottom: 80px; /* Add bottom padding to prevent overlap */  
   }
 
   .measurement-panel {
@@ -283,23 +285,6 @@
     }
   }
 
-  /* Fix the position for animation bar and copyright */
-  .animation-controls {
-    margin-top: 20px;
-    background-color: white;
-    padding: 10px;
-    position: absolute;
-    bottom: 40px; /* fix position, adjust as needed */
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .copyright {
-    position: absolute;
-    bottom: 10px; /* adjust as needed */
-    right: 10px;
-  }
-
   /* Message when animation is unavailable */
   #no-animation-message {
     text-align: center;
@@ -353,6 +338,32 @@
     gap: 10px;
   }
 
+  /* Make the animation buttons container scrollable */
+  .animation-scroller {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow-x: auto; /* Allow scrolling if needed */
+    max-width: 100%;
+    padding-bottom: 10px;
+    scrollbar-width: none; /* Hide scrollbar on Firefox */
+    -ms-overflow-style: none; /* Hide scrollbar on IE/Edge */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide Scrollbar for WebKit Browsers */
+  .animation-scroller::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .copyright {
+    text-align: right;
+    font-size: 12px;
+    color: #888;
+  }
+  
+
   /* The text "Animations" on its own line above the carousel */
   .animation-title {
     font-size: 16px;
@@ -364,35 +375,18 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    max-width: 100%;
+    padding-bottom: 10px;
   }
 
   /* Container that holds all the animation buttons in one line */
   .animation-buttons-container {
     display: flex;
-    flex-wrap: nowrap; /* Prevents buttons from wrapping */
+    flex-wrap: wrap; /* Prevents buttons from wrapping */
     align-items: center;
     gap: 10px;
     overflow: hidden; /* Hide overflow for a neat carousel effect */
     max-width: 600px; /* Adjust as needed */
-  }
-
-  /* Left/Right arrow buttons */
-  .arrow-button {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #333;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .arrow-button:hover {
-    background: #f0f0f0;
-    border-radius: 4px;
   }
 
   /* Your existing .animation-button styles (light blue) remain unchanged */
@@ -407,11 +401,29 @@
     font-size: 14px;
   }
 
-  /* Example arrow hover effect (optional) */
-  .arrow-button:hover {
-    background: #f0f0f0;
-    border-radius: 4px;
+  /* Responsive layout for mobile devices */
+  @media screen and (max-width: 768px) {
+    .viewer-layout {
+      display: flex;
+      flex-direction: column; /* Stack elements on top of each other */
+      padding-bottom: 100px; /* Prevent overlap */
+    }
+  
+    .measurement-panel {
+      border-right: none; /* Remove right border on mobile */
+      border-bottom: 1px solid #eee; /* Add bottom border for separation */
+    }
+
+    .animation-controls {
+      position: relative; /* Avoid absolute positioning for mobile */
+      margin-top: 20px; /* Add spacing */
+    }
+  
+    .copyright {
+      margin-top: 5px;
+    }
   }
+  
 </style>
 
 <script>
@@ -421,20 +433,6 @@
 
     // 🚨 Reset avatarChosen to false on page load
     localStorage.setItem('avatarChosen', 'false');
-
-    // For animation scroller
-    const container = document.querySelector('.animation-buttons-container');
-    const prevBtn = document.getElementById('prevAnimation');
-    const nextBtn = document.getElementById('nextAnimation');
-
-    if (container && prevBtn && nextBtn) {
-      prevBtn.addEventListener('click', () => {
-        container.scrollBy({ left: -100, behavior: 'smooth' });
-      });
-      nextBtn.addEventListener('click', () => {
-        container.scrollBy({ left: 100, behavior: 'smooth' });
-      });
-    }
 
     // A reusable function that fetches sizing and updates the UI
     async function updateSizingFromBackend() {
@@ -575,6 +573,8 @@
         // Fetch animation from backend
         sendAnimationToBackend(selectedAnimation)
           .then((outputUrl) => {
+            console.log("outputUrl");
+            console.log(outputUrl);
             if (outputUrl) {
               if (selectedAnimation === 'apose') {
                 loadingIndicator.style.display = 'none';

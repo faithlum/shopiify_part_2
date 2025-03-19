@@ -33,16 +33,20 @@
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 9999;
     display: none;
+    overflow-y: auto;
   }
 
   .modal-content {
     background-color: white;
-    margin: 15% auto;
-    padding: 20px;
-    width: 80%;
+    width: 90%;
     max-width: 500px;
+    margin: auto;
+    padding: 20px;
     border-radius: 8px;
-    position: relative;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .close {
