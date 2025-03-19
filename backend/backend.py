@@ -275,9 +275,9 @@ async def selected_animation(request: Request):
 
     if EMAIL == None:
         if selected_animation == "apose":
-            output_url = f"http://localhost:8000/animations/default/{garment_name}/{selected_animation}.glb"
+            output_url = f"https://api.simflection.tech/animations/default/{garment_name}/{selected_animation}.glb"
         else:
-            output_url = f"http://localhost:8000/animations/default/{garment_name}/{selected_animation}.mp4"
+            output_url = f"https://api.simflection.tech/animations/default/{garment_name}/{selected_animation}.mp4"
 
         return {
             "message": "Animation received successfully",

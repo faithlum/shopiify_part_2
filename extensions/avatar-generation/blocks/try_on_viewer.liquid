@@ -3,7 +3,7 @@
     <button class="tab active">Try-on</button>
     <button class="tab">Body Measurements</button>
   </div>
-  
+
   <div class="viewer-layout">
     <!-- Left Panel -->
     <div class="measurement-panel">
@@ -84,42 +84,34 @@
     <!-- Right Panel - Video Viewer -->
     <div class="model-viewer-panel">
       <!-- Video Container -->
-        <!-- Video Container -->
-        <div class="video-container">
-          <!-- 3D Model Viewer (Initially Hidden) -->
-          <model-viewer 
-            id="apose-viewer"
-            style="diplay: none; width: 100%; height: 100%"
-            auto-rotate 
-            camera-controls
-            exposure="0.5" 
-            shadow-intensity="0.8">
-          </model-viewer>
-          
+      <!-- Video Container -->
+      <div class="video-container">
+        <!-- 3D Model Viewer (Initially Hidden) -->
+        <model-viewer
+          id="apose-viewer"
+          style="display: none; width: 100%; height: 100%"
+          auto-rotate
+          camera-controls
+        >
+        </model-viewer>
 
-          <video id="product-video" controls autoplay style="display: none;">
-            <source src="" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-          
-          <!-- Simulation Unavailable Message (shown initially) -->
-          <div id="simulationUnavailable" class="message-box">
-            Simulation Unavailable
-          </div>
+        <video id="product-video" controls muted playsinline style="display: none;">
+          <source src="" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
 
-          <!-- Loading Indicator -->
-          <div id="loadingIndicator" class="loading-spinner" style="display:none;">
-            <div class="spinner"></div>
-            <div class="loading-text">Loading animation...</div>
-          </div>
+        <!-- Simulation Unavailable Message (shown initially) -->
+        <div id="simulationUnavailable" class="message-box">Simulation Unavailable</div>
 
-          <!-- Animation unavailable after failure -->
-          <div id="no-animation-message" class="message-box" style="display: none;">
-            Animation Unavailable
-          </div>
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="loading-spinner" style="display:none;">
+          <div class="spinner"></div>
+          <div class="loading-text">Loading animation...</div>
         </div>
 
-
+        <!-- Animation unavailable after failure -->
+        <div id="no-animation-message" class="message-box" style="display: none;">Animation Unavailable</div>
+      </div>
 
       <!-- Animation Controls -->
       <div class="animation-controls">
@@ -128,8 +120,8 @@
 
         <!-- Scrolling Row with Left/Right Arrows -->
         <div class="animation-scroller">
-          <!--button class="arrow-button" id="prevAnimation">‹</button-->
-          
+          <!-- button class="arrow-button" id="prevAnimation">‹</button -->
+
           <div class="animation-buttons-container">
             <button class="animation-button" data-animation="apose">Standing</button>
             <button class="animation-button" data-animation="walking">Walking</button>
@@ -137,14 +129,12 @@
             <button class="animation-button" data-animation="gymnastics">Gymnastics</button>
           </div>
 
-          <!--button class="arrow-button" id="nextAnimation">›</button-->
+          <!-- button class="arrow-button" id="nextAnimation">›</button -->
         </div>
       </div>
 
       <!-- Copyright BELOW the animation controls -->
-      <div class="copyright">
-        © Simflection
-      </div>
+      <div class="copyright">© Simflection</div>
     </div>
   </div>
 </div>
@@ -191,10 +181,9 @@
     background: white;
   }
 
-
   /* Size Recommendation Styles */
   .size-recommendation {
-    background: #FFF9E6;
+    background: #fff9e6;
     padding: 15px;
     border-radius: 4px;
     margin-bottom: 30px;
@@ -225,7 +214,6 @@
   .size-option.selected {
     font-weight: 600;
   }
-
 
   /* Video Container */
   .video-container {
@@ -287,8 +275,12 @@
   }
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   /* Fix the position for animation bar and copyright */
@@ -313,7 +305,6 @@
     text-align: center;
     color: red;
   }
-
 
   /* Update the CSS for measurement items */
   .measurement-item {
@@ -340,89 +331,92 @@
     font-weight: 500;
   }
 
-  .just-right { color: #4CAF50; }
-  .long { color: #F44336; }
-  .little-tight { color: #FF9800; }
+  .just-right {
+    color: #4caf50;
+  }
+  .long {
+    color: #f44336;
+  }
+  .little-tight {
+    color: #ff9800;
+  }
 
   /* Animation Controls */
   /* The overall container for the animation UI */
-.animation-controls {
-  margin-top: 20px;
-  background-color: white;
-  padding: 10px;
-  display: flex;
-  flex-direction: column; /* Title on top, scroller below */
-  align-items: flex-start;
-  gap: 10px;
-}
+  .animation-controls {
+    margin-top: 20px;
+    background-color: white;
+    padding: 10px;
+    display: flex;
+    flex-direction: column; /* Title on top, scroller below */
+    align-items: flex-start;
+    gap: 10px;
+  }
 
-/* The text "Animations" on its own line above the carousel */
-.animation-title {
-  font-size: 16px;
-  font-weight: 600;
-}
+  /* The text "Animations" on its own line above the carousel */
+  .animation-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
 
-/* The row containing the arrow buttons and the scrolling container */
-.animation-scroller {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+  /* The row containing the arrow buttons and the scrolling container */
+  .animation-scroller {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 
-/* Container that holds all the animation buttons in one line */
-.animation-buttons-container {
-  display: flex;
-  flex-wrap: nowrap; /* Prevents buttons from wrapping */
-  align-items: center;
-  gap: 10px;
-  overflow: hidden;  /* Hide overflow for a neat carousel effect */
-  max-width: 600px;  /* Adjust as needed */
-}
+  /* Container that holds all the animation buttons in one line */
+  .animation-buttons-container {
+    display: flex;
+    flex-wrap: nowrap; /* Prevents buttons from wrapping */
+    align-items: center;
+    gap: 10px;
+    overflow: hidden; /* Hide overflow for a neat carousel effect */
+    max-width: 600px; /* Adjust as needed */
+  }
 
-/* Left/Right arrow buttons */
-.arrow-button {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #333;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  /* Left/Right arrow buttons */
+  .arrow-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.arrow-button:hover {
-  background: #f0f0f0;
-  border-radius: 4px;
-}
+  .arrow-button:hover {
+    background: #f0f0f0;
+    border-radius: 4px;
+  }
 
-/* Your existing .animation-button styles (light blue) remain unchanged */
-.animation-button {
-  background-color: #ADD8E6;
-  color: black;
-  border: none;
-  padding: 8px 16px;
-  margin: 5px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
+  /* Your existing .animation-button styles (light blue) remain unchanged */
+  .animation-button {
+    background-color: #add8e6;
+    color: black;
+    border: none;
+    padding: 8px 16px;
+    margin: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
 
   /* Example arrow hover effect (optional) */
   .arrow-button:hover {
     background: #f0f0f0;
     border-radius: 4px;
   }
-
-
 </style>
 
 <script>
   console.log('🔵 VIEWER SCRIPT - START LOADING');
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     console.log('🔵 VIEWER SCRIPT - DOMContentLoaded fired');
 
     // 🚨 Reset avatarChosen to false on page load
@@ -446,7 +440,7 @@
     async function updateSizingFromBackend() {
       console.log('[Viewer] updateSizingFromBackend triggered');
       try {
-        const response = await fetch('http://localhost:8000/get-sizing');
+        const response = await fetch('https://api.simflection.tech/get-sizing');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -454,7 +448,7 @@
         // Read recommended size and comment from headers
         const recommendedSize = response.headers.get('X-Recommended-Size');
         const sizeComment = response.headers.get('X-Size-Comment');
-        console.log("[Viewer] Recommended size:", recommendedSize);
+        console.log('[Viewer] Recommended size:', recommendedSize);
 
         if (recommendedSize && recommendedSize !== 'None') {
           // Update the recommended size in the UI
@@ -465,11 +459,11 @@
 
           // If there's a comment with dimension details, parse and display them
           if (sizeComment && sizeComment !== 'None') {
-            const measurements = sizeComment.split(';').map(m => m.trim());
+            const measurements = sizeComment.split(';').map((m) => m.trim());
             const measurementsList = document.querySelector('.measurements-list');
             measurementsList.innerHTML = '';
 
-            measurements.forEach(measurement => {
+            measurements.forEach((measurement) => {
               const words = measurement.split(' ');
               const dimensionName = words[0];
               const status = words.slice(2).join(' ').toUpperCase();
@@ -504,7 +498,7 @@
     }
 
     // 1) Listen for a custom event "avatar-chosen"
-    document.addEventListener('avatar-chosen', function() {
+    document.addEventListener('avatar-chosen', function () {
       console.log('[Viewer] avatar-chosen event received, calling updateSizingFromBackend()');
       updateSizingFromBackend();
     });
@@ -512,40 +506,39 @@
     // 2) Animation button handling
     function sendAnimationToBackend(animation) {
       console.log('[Viewer] Sending selected animation to backend:', animation);
-      var productTitle = "{{ product.title }}";
-      var productId = "{{ product.id }}";
+      var productTitle = '{{ product.title }}';
+      var productId = '{{ product.id }}';
 
       console.log(productTitle);
       console.log(productId);
 
-      return fetch('http://localhost:8000/selected-animation', {
+      return fetch('https://api.simflection.tech/selected-animation', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           animation: animation,
           productTitle: productTitle,
-          productId: productId
+          productId: productId,
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
         })
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('[Viewer] Animation sent successfully, data:', data);
-        // data.output_url is what we'll use to set the video source
-        return data.output_url;
-      })
-      .catch(error => {
-        console.error('[Viewer] Error sending animation to backend:', error);
-        throw error; // re-throw so the caller can handle it
-      });
+        .then((data) => {
+          console.log('[Viewer] Animation sent successfully, data:', data);
+          // data.output_url is what we'll use to set the video source
+          return data.output_url;
+        })
+        .catch((error) => {
+          console.error('[Viewer] Error sending animation to backend:', error);
+          throw error; // re-throw so the caller can handle it
+        });
     }
-
 
     // Handle click on animation buttons
     const animationButtons = document.querySelectorAll('.animation-button');
@@ -553,8 +546,8 @@
     const noAnimationMessage = document.getElementById('no-animation-message');
 
     // Handle click on animation buttons
-    animationButtons.forEach(button => {
-      button.addEventListener('click', function() {
+    animationButtons.forEach((button) => {
+      button.addEventListener('click', function () {
         const selectedAnimation = this.dataset.animation;
         const loadingIndicator = document.getElementById('loadingIndicator');
         const videoElement = document.getElementById('product-video');
@@ -564,9 +557,11 @@
 
         // 🚨 Stronger check for avatar selection
         const avatarChosen = localStorage.getItem('avatarChosen');
-        console.log("Avatar chosen state:", avatarChosen); // Debugging log
-        if (avatarChosen !== "true") {
-          alert("Please click the Try-on button first to select default avatar or upload an avatar before playing animations.");
+        console.log('Avatar chosen state:', avatarChosen); // Debugging log
+        if (avatarChosen !== 'true') {
+          alert(
+            'Please click the Try-on button first to select default avatar or upload an avatar before playing animations.'
+          );
           return; // 🚫 Stop execution here, do not proceed
         }
 
@@ -577,12 +572,11 @@
         videoElement.style.display = 'none';
         modelViewer.style.display = 'none'; // Hide model viewer
 
-
         // Fetch animation from backend
         sendAnimationToBackend(selectedAnimation)
-          .then(outputUrl => {
+          .then((outputUrl) => {
             if (outputUrl) {
-              if (selectedAnimation === "apose") {
+              if (selectedAnimation === 'apose') {
                 loadingIndicator.style.display = 'none';
                 simulationUnavailable.style.display = 'none';
                 noAnimationMessage.style.display = 'none';
@@ -603,7 +597,7 @@
               noAnimationMessage.style.display = 'flex';
             }
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('[Viewer] Error:', error);
             loadingIndicator.style.display = 'none';
             simulationUnavailable.style.display = 'none';
@@ -611,9 +605,6 @@
           });
       });
     });
-
-
-
   });
 </script>
 

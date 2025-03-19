@@ -1,6 +1,9 @@
-<div class="try-on-container" style="--button-color: {{ block.settings.button_color }}; --text-color: {{ block.settings.text_color }};">
-  <button 
-    class="try-on-button custom-try-on-button" 
+<div
+  class="try-on-container"
+  style="--button-color: {{ block.settings.button_color }}; --text-color: {{ block.settings.text_color }};"
+>
+  <button
+    class="try-on-button custom-try-on-button"
     onclick="showTryOnModal()"
   >
     {{ block.settings.button_text }} ›
@@ -27,7 +30,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     z-index: 9999;
     display: none;
   }
@@ -136,9 +139,9 @@
 
   console.log('[DEBUG] Script starting in try_on_button');
 
-  document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener('DOMContentLoaded', function () {
     console.log('[DEBUG] DOMContentLoaded fired in try_on_button');
-    
+
     // Create modals HTML
     const modalsHTML = `
       <!-- User Type Modal -->
@@ -276,22 +279,22 @@
     const uploadArea = document.getElementById('uploadArea');
     if (uploadArea) {
       // Add drag-and-drop event listeners to the upload area
-      uploadArea.addEventListener('dragenter', function(e) {
+      uploadArea.addEventListener('dragenter', function (e) {
         e.preventDefault();
         e.stopPropagation();
         uploadArea.style.backgroundColor = '#e0e0e0';
       });
-      uploadArea.addEventListener('dragover', function(e) {
+      uploadArea.addEventListener('dragover', function (e) {
         e.preventDefault();
         e.stopPropagation();
         uploadArea.style.backgroundColor = '#e0e0e0';
       });
-      uploadArea.addEventListener('dragleave', function(e) {
+      uploadArea.addEventListener('dragleave', function (e) {
         e.preventDefault();
         e.stopPropagation();
         uploadArea.style.backgroundColor = '#f9f9f9';
       });
-      uploadArea.addEventListener('drop', function(e) {
+      uploadArea.addEventListener('drop', function (e) {
         e.preventDefault();
         e.stopPropagation();
         uploadArea.style.backgroundColor = '#f9f9f9';
@@ -317,13 +320,13 @@
     document.getElementById('userTypeModal').style.display = 'none';
     document.getElementById('qrCodeModal').style.display = 'none';
     document.getElementById('uploadAvatarModal').style.display = 'block';
-    
+
     // Reset upload UI elements
     const fileInput = document.getElementById('avatarFile');
     const uploadButton = document.getElementById('uploadButton');
     const preview = document.getElementById('filePreview');
     const placeholder = document.getElementById('uploadPlaceholder');
-    
+
     if (fileInput) {
       fileInput.value = '';
     }
@@ -335,7 +338,7 @@
     }
     if (preview && placeholder) {
       preview.style.display = 'none';
-      if(preview.querySelector('p')){
+      if (preview.querySelector('p')) {
         preview.querySelector('p').textContent = '';
       }
       placeholder.style.display = 'block';
@@ -365,7 +368,7 @@
       const placeholder = document.getElementById('uploadPlaceholder');
       if (preview && placeholder) {
         preview.style.display = 'none';
-        if(preview.querySelector('p')){
+        if (preview.querySelector('p')) {
           preview.querySelector('p').textContent = '';
         }
         placeholder.style.display = 'block';
@@ -376,7 +379,7 @@
   // Process the selected file from either file input or drag-and-drop.
   function processFile(file) {
     if (!file.name.toLowerCase().endsWith('.fbx')) {
-      alert("Invalid file type. Only FBX files are allowed.");
+      alert('Invalid file type. Only FBX files are allowed.');
       return;
     }
     selectedFile = file;
@@ -404,7 +407,7 @@
     const preview = document.getElementById('filePreview');
     const placeholder = document.getElementById('uploadPlaceholder');
     preview.style.display = 'none';
-    if(preview.querySelector('p')){
+    if (preview.querySelector('p')) {
       preview.querySelector('p').textContent = '';
     }
     placeholder.style.display = 'block';
@@ -421,19 +424,19 @@
     } else if (selectedFile) {
       file = selectedFile;
     }
-    
+
     if (!file) {
-      alert("No file selected.");
+      alert('No file selected.');
       return;
     }
 
     const email = document.getElementById('userEmail').value.trim();
 
-    console.log("EMAIL");
+    console.log('EMAIL');
     console.log(email);
 
     if (!email) {
-      alert("No email entered.");
+      alert('No email entered.');
       return;
     }
 
@@ -445,38 +448,38 @@
     formData.append('file', file);
     formData.append('email', email);
 
-    fetch('http://localhost:8000/upload', {
+    fetch('https://api.simflection.tech/upload', {
       method: 'POST',
-      body: formData
+      body: formData,
     })
-    .then(response => {
-      console.log('Response status:', response.status);
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Upload successful:', data);
+      .then((response) => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Upload successful:', data);
 
-      // 1) Mark that user has chosen an avatar
-      localStorage.setItem('avatarChosen', 'true');
+        // 1) Mark that user has chosen an avatar
+        localStorage.setItem('avatarChosen', 'true');
 
-      // Dispatch the custom event so the Viewer code can react
-      document.dispatchEvent(new Event('avatar-chosen'));
+        // Dispatch the custom event so the Viewer code can react
+        document.dispatchEvent(new Event('avatar-chosen'));
 
-      closeModal('uploadAvatarModal');
-      console.log('[Button] Modal closed');
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Error: ' + error.message);
-    })
-    .finally(() => {
-      uploadButton.disabled = false;
-      uploadButton.textContent = 'Upload';
-      selectedFile = null;
-    });
+        closeModal('uploadAvatarModal');
+        console.log('[Button] Modal closed');
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+      })
+      .finally(() => {
+        uploadButton.disabled = false;
+        uploadButton.textContent = 'Upload';
+        selectedFile = null;
+      });
   }
 
   function uploadDefaultAvatar() {
@@ -485,44 +488,44 @@
     defaultButton.textContent = 'Uploading...';
     const formData = new FormData();
     formData.append('useDefault', 'true');
-    fetch('http://localhost:8000/upload', {
+    fetch('https://api.simflection.tech/upload', {
       method: 'POST',
-      body: formData
+      body: formData,
     })
-    .then(response => {
-      console.log('Response status:', response.status);
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Upload successful:', data);
+      .then((response) => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Upload successful:', data);
 
-      // 1) Mark that user has chosen an avatar
-      localStorage.setItem('avatarChosen', 'true');
+        // 1) Mark that user has chosen an avatar
+        localStorage.setItem('avatarChosen', 'true');
 
-      // Dispatch the custom event
-      document.dispatchEvent(new Event('avatar-chosen'));
+        // Dispatch the custom event
+        document.dispatchEvent(new Event('avatar-chosen'));
 
-      closeModal('userTypeModal');
-      console.log('[Button] Modal closed');
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Error: ' + error.message);
-    })
-    .finally(() => {
-      defaultButton.disabled = false;
-      defaultButton.textContent = 'Use Default Avatar';
-    });
+        closeModal('userTypeModal');
+        console.log('[Button] Modal closed');
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+      })
+      .finally(() => {
+        defaultButton.disabled = false;
+        defaultButton.textContent = 'Use Default Avatar';
+      });
   }
 
-  window.onclick = function(event) {
+  window.onclick = function (event) {
     if (event.target.className === 'modal') {
       event.target.style.display = 'none';
     }
-  }
+  };
 </script>
 
 {% schema %}

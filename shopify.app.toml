@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "17374faebae54e5f6ded894878b9c293"
-application_url = "https://tuition-yen-allan-jeremy.trycloudflare.com"
+application_url = "https://pet-child-mixed-mozilla.trycloudflare.com"
 embedded = true
 name = "3D-tryon"
 handle = "3d-tryon"
@@ -23,9 +23,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://tuition-yen-allan-jeremy.trycloudflare.com/auth/callback",
-  "https://tuition-yen-allan-jeremy.trycloudflare.com/auth/shopify/callback",
-  "https://tuition-yen-allan-jeremy.trycloudflare.com/api/auth/callback"
+  "https://pet-child-mixed-mozilla.trycloudflare.com/auth/callback",
+  "https://pet-child-mixed-mozilla.trycloudflare.com/auth/shopify/callback",
+  "https://pet-child-mixed-mozilla.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
