@@ -27,9 +27,13 @@ const fbxLoader = new FBXLoader();
 
 // Get file paths
 const avatarInFilePath = process.argv[2];
-const avatarFilePath = path.resolve(__dirname, '../../${avatarInFilePath}');
-const tposeFilePath = path.resolve(__dirname, '../../uploads/tpose.fbx');
-const bodyDimFilePath = path.resolve(__dirname, 'body_dim.json');
+const user_id = process.argv[3];
+const avatarFilePath = path.resolve(__dirname, `../../${avatarInFilePath}`);
+const tposeFilePath = path.resolve(__dirname, `../../uploads/tpose.fbx`);
+const bodyDimFilePath = path.resolve(__dirname, `../../animations/${user_id}/body_dim.json`);
+
+console.log("bodyDimFilePath:");
+console.log(bodyDimFilePath);
 
 // Animation variables
 let avatar, tpose;

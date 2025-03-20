@@ -6,11 +6,13 @@ from datetime import datetime
 import subprocess
 from fastapi import FastAPI, File, UploadFile, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from scripts.sizing_recommendation.sizing_recommender import get_size
 import boto3
 import hashlib
+import trimesh
+import numpy as np
 
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 table = dynamodb.Table('user_data')
@@ -70,10 +72,21 @@ async def get_body_dim(file_path):
     """Run the processing script on the model file."""
     try:
         script_path = "scripts/get_body_dim/get_body_dim.js"  # Node.js script
+
+        global EMAIL
+        if EMAIL == None:
+            user_id = "default"
+        else:
+            user_id = generate_user_id(EMAIL)
+
+        directory = os.path.dirname(file_path)
+        os.makedirs(directory, exist_ok=True)
+
         print(f"Running processing script on: {file_path}")
+        print(user_id)
         
         process = await asyncio.create_subprocess_exec(
-            'node', script_path, file_path,
+            'node', script_path, file_path, user_id, 
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -91,8 +104,15 @@ async def get_body_dim(file_path):
         return False
 
 async def sizing_rec():
+    global EMAIL
+
+    if EMAIL == None:
+        user_id = "default"
+    else:
+        user_id = generate_user_id(EMAIL)
+
     try:
-        with open('scripts/get_body_dim/body_dim.json', 'r') as f:
+        with open(f'animations/{user_id}/body_dim.json', 'r') as f:
             sizing_data = json.load(f)
     except Exception as e:
         print(f"Error reading sizing data: {e}")
@@ -116,23 +136,27 @@ async def get_latest_model_info():
 @app.get("/get-sizing")
 async def get_sizing():
     global latest_model
-    current_latest = get_latest_uploaded_file()
-    print("in get_sizing", current_latest)
+    global EMAIL
+
+    if EMAIL == None:
+        file_path = "animations/default/body_dim.json"
+    else:
+        user_id = generate_user_id(EMAIL)
+        file_path = f"animations/{user_id}/body_dim.json"
+
+    print(f"in get_sizing: {file_path}")
+                
     
-    if current_latest and os.path.exists(current_latest["path"]):
+    if file_path and os.path.exists(file_path):
         try:
-            # Update latest_model if there's a new file
-            if current_latest["path"] != latest_model["path"]:
-                latest_model = current_latest
-            
             # Run the processing script
             print("before calling run_processing_script")
-            await get_body_dim(current_latest["path"])
+            await get_body_dim(file_path)
             recommended_size, recommended_comment = await sizing_rec()
             print("before unpack", recommended_size, recommended_comment)
 
             # Determine media type
-            file_ext = os.path.splitext(current_latest["path"])[1].lower()
+            file_ext = os.path.splitext(file_path)[1].lower()
             media_type = {
                 '.glb': 'model/gltf-binary',
                 '.gltf': 'model/gltf+json',
@@ -144,7 +168,6 @@ async def get_sizing():
                 "Cache-Control": "no-cache, no-store, must-revalidate",
                 "Pragma": "no-cache",
                 "Expires": "0",
-                "Last-Modified": current_latest["timestamp"],
                 "X-Recommended-Size": str(recommended_size),
                 "X-Size-Comment": str(recommended_comment),
                 "Access-Control-Allow-Origin": "https://simflection.myshopify.com",
@@ -152,9 +175,9 @@ async def get_sizing():
             }
 
             return FileResponse(
-                current_latest["path"],
+                file_path,
                 media_type=media_type,
-                filename=os.path.basename(current_latest["path"]),
+                filename=os.path.basename(file_path),
                 headers=headers
             )
         except Exception as e:
@@ -163,6 +186,83 @@ async def get_sizing():
             
     return {"error": "No model file found"}, 404
 
+@app.get("/get-body-dim-and-model")
+async def get_body_dim_and_model():
+    print("in get_dim_and_model")
+    current_latest = get_latest_uploaded_file()
+
+    print(f"in body dim and model: {current_latest}")
+    await get_body_dim(current_latest["path"])
+
+    global EMAIL
+
+    if EMAIL == None:
+        user_id = "default"
+    else:
+        user_id = generate_user_id(EMAIL)
+    try: 
+        with open(f'animations/{user_id}/body_dim.json', 'r') as f:
+            body_dim = json.load(f)
+    except Exception as e:
+        print(f"❌ Error getting body dim: {str(e)}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+    current_latest = get_latest_uploaded_file()
+
+    print(current_latest)
+
+    fbx_path = current_latest["path"]
+
+    try:
+        if EMAIL == None:
+            glb_path = "animations/default/body_dim.glb"
+        else:
+            user_id = generate_user_id(EMAIL)
+            glb_path = f"animations/{user_id}/body_dim.glb"
+
+        if not os.path.exists(glb_path):
+            cmd = [
+                "assimp", "export",
+                fbx_path, glb_path
+            ]
+
+            print("in get body dim and model")
+            print(body_dim)
+            print(cmd)
+
+            try: 
+                subprocess.run(cmd, check=True)
+                glb = trimesh.load(glb_path)
+                scene = trimesh.Scene(glb)
+                color = (np.array([77, 77, 77, 255])).astype(np.uint8)  # Convert to 0-255 RGB
+
+                # ✅ Apply colors to the objects separately
+                for i, (name, mesh) in enumerate(glb.geometry.items()):
+                    if isinstance(mesh, trimesh.Trimesh):
+                        # Apply color to all vertices
+                        mesh.visual.vertex_colors = np.tile(color, (mesh.vertices.shape[0], 1))
+                        
+                        # Add modified mesh back to scene
+                        scene.add_geometry(mesh, node_name=f"modified_{name}")
+
+                scene.export(glb_path)
+                print(f"✅ Successfully converted {fbx_path} to {glb_path}")
+            except subprocess.CalledProcessError as e:
+                print(f"❌ Conversion failed: {e}")
+                return JSONResponse(content={"error": f"Conversion failed: {str(e)}"}, status_code=500)
+
+
+        output_url = f"https://api.simflection.tech/{glb_path}"
+
+        return JSONResponse(content={
+            "body_dim": body_dim,  # Ensure it's a dict
+            "glb_url": output_url,
+        }, status_code=200)
+
+    except Exception as e:
+        print(f"❌ Error in get body dim and model endpoint: {str(e)}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+    
 def generate_user_id(email):
     return hashlib.sha256(email.encode()).hexdigest()[:16]
 
@@ -177,6 +277,9 @@ async def upload_file(
     global EMAIL 
 
     EMAIL = email
+
+    print(f"in upload endpoint: {useDefault}")
+    print(f"email: {email}")
 
     if useDefault:
         default_file = "default_joseph.fbx"
@@ -195,13 +298,17 @@ async def upload_file(
             "filename": f"{UPLOAD_DIR}/default_joseph.fbx"
         }
     
+    print(f"file: {file}")
+    
     if file is None:
         return {"error": "File must be provided if useDefault is False"}, 400
     
     try:
-        file_path = os.path.join(UPLOAD_DIR, "avatar.fbx")
+        file_path = os.path.join(UPLOAD_DIR, file.filename)
         if os.path.exists(file_path):
             os.remove(file_path)
+
+        print(f"file path: {file_path}")
         
         with open(file_path, "wb") as buffer:
             content = await file.read()
@@ -214,8 +321,14 @@ async def upload_file(
         
         print(f"New model saved as: {file_path}")
 
+
+        if EMAIL == None:
+            user_id = "default"
+        else:
+            user_id = generate_user_id(EMAIL)
+
         get_body_dim(file_path)
-        with open('scripts/get_body_dim/body_dim.json', 'r') as f:
+        with open(f'animations/{user_id}/body_dim.json', 'r') as f:
             body_dim = json.load(f)
 
         print("CALL DB here")
@@ -241,7 +354,7 @@ async def upload_file(
                     print("Unexpected error:", e)
 
         return {
-            "filename": "avatar.fbx",
+            "filename": file_path.split("/")[-1],
             "size": len(content),
             "status": "processed",
             "timestamp": latest_model["timestamp"]
@@ -268,7 +381,15 @@ async def selected_animation(request: Request):
     print(f"[Backend] Animation received: {selected_animation}")
     
     product_id_to_garment_name_mapping = {
-        '9918248943925': "tank"
+        '9918248943925': "tank",
+        '10032869409077': "longsleeve",
+        '10032883958069': "pants_shorter",
+        '9918239211829': "pants",
+        '10032886087989': "shorts",
+        '10032887365941': "shortsleeve",
+        '10032890904885': "tight_dress",
+        '10032900079925': "tshirt_unzipped"
+
     }
 
     garment_name = product_id_to_garment_name_mapping[product_id]
@@ -310,6 +431,8 @@ async def selected_animation(request: Request):
     else:
         out_file = f"animations/{user_id}/{garment_name}/{selected_animation}.mp4"
 
+    print(f"out_file: {out_file}")
+
     if not os.path.exists(out_file):
         os.makedirs(os.path.dirname(out_file), exist_ok=True)
         cmd = [
@@ -340,7 +463,7 @@ async def selected_animation(request: Request):
         print("Subprocess output:", output)
 
     # Build the video URL
-    output_url = f"http://localhost:8000/{out_file}"
+    output_url = f"http://api.simflection.tech/{out_file}"
 
     # Return a JSON response with the video URL
     return {

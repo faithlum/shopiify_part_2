@@ -1,10 +1,10 @@
 <div class="try-on-viewer-container">
   <div class="viewer-tabs">
     <button class="tab active" id="try-on-tab">Try-on</button>
-    <button class="tab">Body Measurements</button>
+    <button class="tab" id="body-dim-tab">Body Measurements</button>
   </div>
 
-  <div class="viewer-layout">
+  <div class="viewer-layout active" id="try-on-view">
     <!-- Left Panel -->
     <div class="measurement-panel">
       <!-- Size Recommendation with yellow highlight -->
@@ -42,19 +42,13 @@
         </div>
         <div class="measurements-list">
           <div class="measurement-item">
-            <span class="measure-label">Bust</span>
+            <span class="measure-label">Height</span>
             <div class="measure-value">
               <span class="status">N/A</span>
             </div>
           </div>
           <div class="measurement-item">
-            <span class="measure-label">Sleeve length</span>
-            <div class="measure-value">
-              <span class="status">N/A</span>
-            </div>
-          </div>
-          <div class="measurement-item">
-            <span class="measure-label">Shoulder width</span>
+            <span class="measure-label">Chest</span>
             <div class="measure-value">
               <span class="status">N/A</span>
             </div>
@@ -65,17 +59,29 @@
               <span class="status">N/A</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Material Composition -->
-      <div class="material-composition">
-        <div class="composition-header">
-          <span>Material Composition</span>
-        </div>
-        <div class="materials-list">
-          <div class="material-item">
-            <span class="material-value">N/A</span>
+          <div class="measurement-item">
+            <span class="measure-label">Hip</span>
+            <div class="measure-value">
+              <span class="status">N/A</span>
+            </div>
+          </div>
+          <div class="measurement-item">
+            <span class="measure-label">Shoulder Width</span>
+            <div class="measure-value">
+              <span class="status">N/A</span>
+            </div>
+          </div>
+          <div class="measurement-item">
+            <span class="measure-label">Sleeve Length</span>
+            <div class="measure-value">
+              <span class="status">N/A</span>
+            </div>
+          </div>
+          <div class="measurement-item">
+            <span class="measure-label">Inseam</span>
+            <div class="measure-value">
+              <span class="status">N/A</span>
+            </div>
           </div>
         </div>
       </div>
@@ -84,8 +90,10 @@
     <!-- Right Panel - Video Viewer -->
     <div class="model-viewer-panel">
       <!-- Video Container -->
-      <!-- Video Container -->
       <div class="video-container">
+        <!-- Label for 3D Viewer -->
+        <div class="viewer-label">3D Viewer</div>
+        
         <!-- 3D Model Viewer (Initially Hidden) -->
         <model-viewer
           id="apose-viewer"
@@ -100,8 +108,14 @@
           Your browser does not support the video tag.
         </video>
 
-        <!-- Simulation Unavailable Message (shown initially) -->
-        <div id="simulationUnavailable" class="message-box">Simulation Unavailable</div>
+        <!-- Simulation Unavailable Message (initially hidden) -->
+        <div id="simulationUnavailable" class="message-box" style="display: none;">
+          <div class="message-content">
+            <div class="message-title">Select an Animation</div>
+            <div class="message-subtitle">Click one of the animations below to view</div>
+            <div class="message-arrow">↓</div>
+          </div>
+        </div>
 
         <!-- Loading Indicator -->
         <div id="loadingIndicator" class="loading-spinner" style="display:none;">
@@ -126,7 +140,7 @@
             <button class="animation-button" data-animation="apose">Standing</button>
             <button class="animation-button" data-animation="walking">Walking</button>
             <button class="animation-button" data-animation="jumping">Jumping</button>
-            <button class="animation-button" data-animation="gymnastics">Gymnastics</button>
+            <button class="animation-button" data-animation="sideflip">Sideflip</button>
           </div>
 
           <!-- button class="arrow-button" id="nextAnimation">›</button -->
@@ -137,6 +151,71 @@
       <div class="copyright">© Simflection</div>
     </div>
   </div>
+
+
+  
+  <!-- Body Dimensions View (Initially Hidden) -->
+  <div class="viewer-layout" id="body-dim-view" style="display: none;">
+    <!-- Left Panel - Body Dimensions -->
+    <div class="measurement-panel">
+        <div class="dimensions">
+            <div class="dimensions-header">
+                <span>Body Dimensions</span>
+            </div>
+            <div class="measurements-list">
+                <div class="measurement-item">
+                    <span class="measure-label">Height</span>
+                    <div class="measure-value"><span class="status">N/A</span></div>
+                </div>
+                <div class="measurement-item">
+                    <span class="measure-label">Bust</span>
+                    <div class="measure-value"><span class="status">N/A</span></div>
+                </div>
+                <div class="measurement-item">
+                    <span class="measure-label">Waist</span>
+                    <div class="measure-value"><span class="status">N/A</span></div>
+                </div>
+                <div class="measurement-item">
+                    <span class="measure-label">Hip</span>
+                    <div class="measure-value"><span class="status">N/A</span></div>
+                </div>
+                <div class="measurement-item">
+                    <span class="measure-label">Shoulder Width</span>
+                    <div class="measure-value"><span class="status">N/A</span></div>
+                </div>
+                <div class="measurement-item">
+                    <span class="measure-label">Sleeve Length</span>
+                    <div class="measure-value"><span class="status">N/A</span></div>
+                </div>
+                <div class="measurement-item">
+                    <span class="measure-label">Inseam</span>
+                    <div class="measure-value"><span class="status">N/A</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel - 3D Model Viewer -->
+    <div class="model-viewer-panel">
+        <div class="model-viewer-container">
+            <model-viewer
+                id="body-dim-viewer"
+                style="width: 100%; height: 100%"
+                auto-rotate
+                camera-controls>
+            </model-viewer>
+            
+            <!-- Loading Indicator for Body Measurements -->
+            <div id="bodyDimLoadingIndicator" class="loading-spinner" style="display:none;">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading 3D model...</div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+
+
 </div>
 
 <script type="module" src="https://unpkg.com/@google/model-viewer@latest"></script>
@@ -145,6 +224,9 @@
   .try-on-viewer-container {
     width: 100%;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    position: relative;
+    margin-bottom: 120px; /* Increased space after container */
+    z-index: 1; /* Ensure proper stacking context */
   }
 
   .viewer-tabs {
@@ -155,6 +237,8 @@
 
   .tab {
     padding: 10px 20px;
+    font-size: 18px;
+    font-weight: 500;
     border: none;
     background: #f5f5f5;
     cursor: pointer;
@@ -166,15 +250,25 @@
     border-top-right-radius: 4px;
   }
 
+  @media screen and (max-width: 768px) {
+    .tab {
+      font-size: 16px;
+    }
+  }
+
   .viewer-layout {
-    display: grid;
-    grid-template-columns: 300px 1fr; /* Default: side-by-side */
+    display: none; /* Hide by default */
+    grid-template-columns: 300px 1fr;
     gap: 20px;
     background: white;
     min-height: 600px;
     width: 100%;
     position: relative;
-    padding-bottom: 80px; /* Add bottom padding to prevent overlap */  
+    padding-bottom: 80px;
+  }
+
+  .viewer-layout.active {
+    display: grid; /* Show when active */
   }
 
   .measurement-panel {
@@ -192,8 +286,10 @@
   }
 
   .recommendation-label {
-    font-size: 14px;
-    margin-bottom: 10px;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
   }
 
   .size-selector {
@@ -244,8 +340,34 @@
     align-items: center;
     justify-content: center;
     font-size: 16px;
-    color: #888;
+    color: #666;
     background-color: #f9f9f9;
+  }
+
+  .message-content {
+    text-align: center;
+  }
+
+  .message-title {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .message-subtitle {
+    font-size: 16px;
+    color: #888;
+    margin-bottom: 15px;
+  }
+
+  .message-arrow {
+    font-size: 24px;
+    animation: bounce-vertical 1.5s infinite;
+  }
+
+  @keyframes bounce-vertical {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
   }
 
   .loading-spinner {
@@ -327,103 +449,179 @@
   }
 
   /* Animation Controls */
-  /* The overall container for the animation UI */
   .animation-controls {
     margin-top: 20px;
     background-color: white;
     padding: 10px;
     display: flex;
-    flex-direction: column; /* Title on top, scroller below */
+    flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+    position: relative; /* For positioning the fade overlay */
   }
 
-  /* Make the animation buttons container scrollable */
   .animation-scroller {
     display: flex;
     align-items: center;
     gap: 10px;
-    overflow-x: auto; /* Allow scrolling if needed */
+    overflow-x: auto;
     max-width: 100%;
     padding-bottom: 10px;
-    scrollbar-width: none; /* Hide scrollbar on Firefox */
-    -ms-overflow-style: none; /* Hide scrollbar on IE/Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-  }
-
-  /* Hide Scrollbar for WebKit Browsers */
-  .animation-scroller::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .copyright {
-    text-align: right;
-    font-size: 12px;
-    color: #888;
-  }
-  
-
-  /* The text "Animations" on its own line above the carousel */
-  .animation-title {
-    font-size: 16px;
-    font-weight: 600;
-  }
-
-  /* The row containing the arrow buttons and the scrolling container */
-  .animation-scroller {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    max-width: 100%;
-    padding-bottom: 10px;
+    position: relative; /* For fade effect */
   }
 
   /* Container that holds all the animation buttons in one line */
   .animation-buttons-container {
     display: flex;
-    flex-wrap: wrap; /* Prevents buttons from wrapping */
+    flex-wrap: nowrap; /* Keep buttons in one line */
     align-items: center;
     gap: 10px;
-    overflow: hidden; /* Hide overflow for a neat carousel effect */
-    max-width: 600px; /* Adjust as needed */
+    position: relative; /* For fade effect */
   }
 
-  /* Your existing .animation-button styles (light blue) remain unchanged */
+  /* Scroll indicator styles - Hidden by default on desktop */
+  .animation-buttons-container::after {
+    display: none; /* Hide by default on desktop */
+  }
+
+  @media screen and (max-width: 768px) {
+    .try-on-viewer-container {
+      margin-bottom: 160px; /* Even more space on mobile */
+    }
+
+    .viewer-layout.active {
+        display: flex; /* Show as flex on mobile when active */
+        flex-direction: column;
+    }
+  
+    .measurement-panel {
+      border-right: none;
+      border-bottom: 1px solid #eee;
+      order: 0;
+    }
+
+    .model-viewer-panel {
+      order: 1;
+      width: 100%;
+      height: 450px;
+    }
+
+    .animation-controls {
+      position: relative;
+      margin: 20px 0;
+      padding: 15px;
+      background: white;
+      width: 100%;
+      box-sizing: border-box;
+      z-index: 2;
+    }
+  
+    .animation-buttons-container {
+      width: 100%;
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 10px;
+      padding-right: 40px; /* Space for the fade/arrow */
+    }
+
+    /* Show scroll indicator on mobile */
+    .animation-buttons-container::after {
+      content: '›';
+      display: block; /* Show on mobile */
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 24px;
+      color: #666;
+      background: linear-gradient(to right, transparent, white 40%);
+      padding: 10px 15px;
+      pointer-events: none;
+      animation: bounce 1.5s infinite;
+    }
+
+    /* Hide the indicator when scrolled to the end */
+    .animation-buttons-container.scrolled-to-end::after {
+      display: none;
+    }
+
+    .copyright {
+      text-align: right;
+      padding: 10px 15px;
+      position: relative; /* Ensure it stays within container */
+      z-index: 2;
+    }
+  }
+  
+  .model-viewer-container {
+    width: 100%;
+    height: 450px;
+    position: relative;
+  }
+
+  .loading-spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  .dimensions-header {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+
+  /* Add styles for the viewer label */
+  .viewer-label {
+    position: absolute;
+    top: -25px;
+    left: 0;
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+  }
+
+  /* Your existing .animation-button styles */
   .animation-button {
     background-color: #add8e6;
     color: black;
     border: none;
-    padding: 8px 16px;
+    padding: 8px 20px;
     margin: 5px;
-    border-radius: 4px;
+    border-radius: 50px;
     cursor: pointer;
     font-size: 14px;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+    transition: all 0.3s ease;
   }
 
-  /* Responsive layout for mobile devices */
-  @media screen and (max-width: 768px) {
-    .viewer-layout {
-      display: flex;
-      flex-direction: column; /* Stack elements on top of each other */
-      padding-bottom: 100px; /* Prevent overlap */
-    }
-  
-    .measurement-panel {
-      border-right: none; /* Remove right border on mobile */
-      border-bottom: 1px solid #eee; /* Add bottom border for separation */
-    }
-
-    .animation-controls {
-      position: relative; /* Avoid absolute positioning for mobile */
-      margin-top: 20px; /* Add spacing */
-    }
-  
-    .copyright {
-      margin-top: 5px;
-    }
+  .animation-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: #9ccfdf;
   }
-  
+
+  .animation-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
 </style>
 
 <script>
@@ -433,6 +631,33 @@
 
     // 🚨 Reset avatarChosen to false on page load
     localStorage.setItem('avatarChosen', 'false');
+
+
+    const tryOnTab = document.getElementById("try-on-tab");
+    const bodyDimTab = document.getElementById("body-dim-tab");
+    const tryOnView = document.getElementById("try-on-view");
+    const bodyDimView = document.getElementById("body-dim-view");
+
+    function switchTab(activeTab) {
+      if (activeTab === "try-on") {
+        tryOnView.style.display = '';
+        bodyDimView.style.display = '';
+        tryOnView.classList.add("active");
+        bodyDimView.classList.remove("active");
+        tryOnTab.classList.add("active");
+        bodyDimTab.classList.remove("active");
+      } else {
+        tryOnView.style.display = '';
+        bodyDimView.style.display = '';
+        tryOnView.classList.remove("active");
+        bodyDimView.classList.add("active");
+        bodyDimTab.classList.add("active");
+        tryOnTab.classList.remove("active");
+      }
+    }
+
+    tryOnTab.addEventListener("click", () => switchTab("try-on"));
+    bodyDimTab.addEventListener("click", () => switchTab("body-dim"));
 
     // A reusable function that fetches sizing and updates the UI
     async function updateSizingFromBackend() {
@@ -495,10 +720,98 @@
       }
     }
 
+    // A reusable function that fetches body dim + get glb and updates the UI
+    async function updateBodyDim() {
+      console.log('[Viewer] updateBodyDim triggered');
+      try {
+        // Show loading indicator
+        const loadingIndicator = document.getElementById('bodyDimLoadingIndicator');
+        if (loadingIndicator) {
+          loadingIndicator.style.display = 'flex';
+        }
+
+        const response = await fetch('https://api.simflection.tech/get-body-dim-and-model');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        console.log(data)
+
+        if (data.error) {
+          console.error("❌ API Error:", data.error);
+          return;
+        }
+
+        const body_dimensions = data.body_dim;
+        const glb_url = data.glb_url;
+        console.log('[Viewer] Body dimensions:', body_dimensions);
+        console.log('[Viewer] glb url:', glb_url);
+        
+        // Update 3D Model Viewer
+        const modelViewer = document.getElementById("body-dim-viewer");
+        if (glb_url) {
+          modelViewer.src = glb_url;
+          // Add load event listener to hide loading indicator when model is ready
+          modelViewer.addEventListener('load', () => {
+            if (loadingIndicator) {
+              loadingIndicator.style.display = 'none';
+            }
+          }, { once: true });
+        }
+
+        // Update measurements display
+        const dimensions = {
+          height: body_dimensions.height,
+          bust: body_dimensions.bust,
+          waist: body_dimensions.waist,
+          hip: body_dimensions.hips,
+          shoulderWidth: body_dimensions.shoulderWidth,
+          sleeveLength: body_dimensions.sleeveLength,
+          inseam: body_dimensions.inseam
+        };
+
+        // Update measurement values
+        Object.entries(dimensions).forEach(([key, value]) => {
+          document.querySelectorAll("#body-dim-view .measurement-item").forEach((item) => {
+            const label = item.querySelector(".measure-label");
+            const status = item.querySelector(".measure-value .status");
+
+            if (label && status) {
+              const labelText = label.textContent.replace(" ", "").trim().toLowerCase();
+              const keyText = key.replace(/_/g, " ").toLowerCase();
+
+              if (labelText.includes(keyText)) {
+                status.textContent = value ? `${parseFloat(value).toFixed(3)} m` : "N/A";
+              }
+            }
+          });
+        });
+
+      } catch (error) {
+        console.error('[Viewer] Error fetching get body dim and model:', error);
+        // Hide loading indicator on error
+        const loadingIndicator = document.getElementById('bodyDimLoadingIndicator');
+        if (loadingIndicator) {
+          loadingIndicator.style.display = 'none';
+        }
+      }
+    }
+
     // 1) Listen for a custom event "avatar-chosen"
     document.addEventListener('avatar-chosen', function () {
-      console.log('[Viewer] avatar-chosen event received, calling updateSizingFromBackend()');
+      console.log('[Viewer] avatar-chosen event received, calling updateSizingFromBackend() and updateBodyDim()');
       updateSizingFromBackend();
+      updateBodyDim();
+      
+      // Update the message to show animation selection prompt
+      const simulationUnavailable = document.getElementById('simulationUnavailable');
+      simulationUnavailable.style.display = 'flex';
+      const videoElement = document.getElementById('product-video');
+      videoElement.style.display = 'none';
+      const modelViewer = document.getElementById('apose-viewer');
+      modelViewer.style.display = 'none';
     });
 
     // 2) Animation button handling
@@ -605,6 +918,44 @@
           });
       });
     });
+
+    // Add scroll indicator logic
+    const animationContainer = document.querySelector('.animation-buttons-container');
+    if (animationContainer) {
+      // Check if scrolling is needed
+      function checkScroll() {
+        const isScrollable = animationContainer.scrollWidth > animationContainer.clientWidth;
+        const isScrolledToEnd = animationContainer.scrollLeft + animationContainer.clientWidth >= animationContainer.scrollWidth - 10;
+        
+        if (!isScrollable || isScrolledToEnd) {
+          animationContainer.classList.add('scrolled-to-end');
+        } else {
+          animationContainer.classList.remove('scrolled-to-end');
+        }
+      }
+
+      // Check on load and whenever content changes
+      checkScroll();
+      window.addEventListener('resize', checkScroll);
+      
+      // Check while scrolling
+      animationContainer.addEventListener('scroll', checkScroll);
+
+      // Add touch indicator for mobile
+      let touchStartX = 0;
+      animationContainer.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+      });
+
+      animationContainer.addEventListener('touchmove', (e) => {
+        const touchEndX = e.touches[0].clientX;
+        const deltaX = touchStartX - touchEndX;
+        
+        if (Math.abs(deltaX) > 5) {
+          animationContainer.style.scrollBehavior = 'smooth';
+        }
+      });
+    }
   });
 </script>
 
